@@ -17,7 +17,7 @@ import { Wallet, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [state, formAction, pending] = useActionState(
+  const [state, formAction, pending] = useActionState<any, FormData>(
     async (prevState: any, formData: FormData) => {
       return await login(formData);
     },
