@@ -1,8 +1,9 @@
 {
+  "id": "expense-tracker-next-pwa",
   "name": "Expense Tracker",
   "short_name": "Expense",
   "description": "Aplikasi pencatat keuangan pribadi",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3B82F6",
@@ -71,7 +72,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Tampilan Mobile Expense Tracker"
+      "label": "Home Screen"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop View"
     }
   ],
   "categories": ["finance", "productivity"]
