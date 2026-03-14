@@ -2,15 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+import { FormattedCurrency } from "@/components/ui/formatted-currency";
 
 interface Transaction {
   id: string;
@@ -73,14 +65,14 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                     </p>
                   </div>
                 </div>
-                <p
+                <FormattedCurrency
+                  amount={Number(t.amount)}
+                  showSign
+                  sign={t.type === "income" ? "+" : "-"}
                   className={`text-sm font-semibold ${
                     t.type === "income" ? "text-emerald-500" : "text-rose-500"
                   }`}
-                >
-                  {t.type === "income" ? "+" : "-"}
-                  {formatRupiah(Number(t.amount))}
-                </p>
+                />
               </div>
             ))}
           </div>

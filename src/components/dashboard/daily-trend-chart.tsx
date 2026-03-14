@@ -11,6 +11,7 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useHideNominal } from "@/components/providers/hide-nominal-provider";
 
 function formatRupiah(amount: number) {
   if (amount >= 1000000) {
@@ -34,6 +35,8 @@ interface DailyTrendChartProps {
 }
 
 export function DailyTrendChart({ data }: DailyTrendChartProps) {
+  const { isHidden } = useHideNominal();
+  // Filter only days with transactions
   // Filter only days with transactions
   const activeDays = data.filter((d) => d.income > 0 || d.expense > 0);
 
@@ -44,7 +47,7 @@ export function DailyTrendChart({ data }: DailyTrendChartProps) {
           <CardTitle className="text-base">Transaksi Harian</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+          <div className="flex items-center justify-center h-50 text-muted-foreground">
             Belum ada transaksi bulan ini
           </div>
         </CardContent>
@@ -71,13 +74,15 @@ export function DailyTrendChart({ data }: DailyTrendChartProps) {
               interval="preserveStartEnd"
             />
             <YAxis
-              tickFormatter={(value) => formatRupiah(value)}
+              tickFormatter={(value) => (isHidden ? "•" : formatRupiah(value))}
               tick={{ fontSize: 10 }}
               className="text-muted-foreground"
             />
             <Tooltip
               formatter={(value: any) => [
-                `Rp ${Number(value).toLocaleString("id-ID")}`,
+                isHidden
+                  ? "Rp ••••••"
+                  : `Rp ${Number(value).toLocaleString("id-ID")}`,
               ]}
               contentStyle={{
                 backgroundColor: "var(--foreground)",

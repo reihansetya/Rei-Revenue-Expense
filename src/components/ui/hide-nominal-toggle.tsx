@@ -32,7 +32,9 @@ export function HideNominalToggle({
               variant={variant}
               size={size}
               onClick={toggle}
-              aria-label={isHidden ? "Tampilkan nominal" : "Sembunyikan nominal"}
+              aria-label={
+                isHidden ? "Tampilkan nominal" : "Sembunyikan nominal"
+              }
             >
               {isHidden ? (
                 <EyeOff className="h-4 w-4" />

@@ -11,6 +11,7 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useHideNominal } from "@/components/providers/hide-nominal-provider";
 
 function formatRupiah(amount: number) {
   if (amount >= 1000000) {
@@ -34,6 +35,8 @@ interface MonthlyBarChartProps {
 }
 
 export function MonthlyBarChart({ data }: MonthlyBarChartProps) {
+  const { isHidden } = useHideNominal();
+  // Check if all data is zero
   // Check if all data is zero
   const hasData = data.some((d) => d.income > 0 || d.expense > 0);
 
@@ -44,7 +47,7 @@ export function MonthlyBarChart({ data }: MonthlyBarChartProps) {
           <CardTitle className="text-base">Transaksi Bulanan</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+          <div className="flex items-center justify-center h-62.5 text-muted-foreground">
             Belum ada data transaksi
           </div>
         </CardContent>
@@ -72,14 +75,14 @@ export function MonthlyBarChart({ data }: MonthlyBarChartProps) {
               className="text-muted-foreground"
             />
             <YAxis
-              tickFormatter={(value) => formatRupiah(value)}
+              tickFormatter={(value) => isHidden ? "•" : formatRupiah(value)}
               tick={{ fontSize: 12 }}
               className="text-muted-foreground"
             />
             <Tooltip
               cursor={{ fill: "transparent" }}
               formatter={(value: any) => [
-                `Rp ${Number(value).toLocaleString("id-ID")}`,
+                isHidden ? "Rp ••••••" : `Rp ${Number(value).toLocaleString("id-ID")}`,
               ]}
               labelFormatter={(label) => {
                 const item = data.find((d) => d.month === label);
