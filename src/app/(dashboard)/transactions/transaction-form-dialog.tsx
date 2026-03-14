@@ -12,6 +12,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { NumericFormat } from "react-number-format";
 
 interface TransactionFormDialogProps {
   open: boolean;
@@ -40,6 +41,13 @@ export function TransactionFormDialog({
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
+    
+    // Clean up the formatted amount (e.g., "1.500.000" -> "1500000")
+    const rawAmount = formData.get("amount") as string;
+    if (rawAmount) {
+      formData.set("amount", rawAmount.replace(/\./g, ""));
+    }
+    
     formData.set("type", selectedType);
     await onSubmit(formData);
     setLoading(false);
@@ -73,12 +81,14 @@ export function TransactionFormDialog({
 
           <div className="space-y-2">
             <Label htmlFor="amount">Jumlah (Rp)</Label>
-            <Input
+            <NumericFormat
               id="amount"
               name="amount"
-              type="number"
-              placeholder="50000"
-              min="1"
+              customInput={Input}
+              thousandSeparator="."
+              decimalSeparator=","
+              placeholder="50.000"
+              allowNegative={false}
               required
             />
           </div>
@@ -91,7 +101,7 @@ export function TransactionFormDialog({
               </SelectTrigger>
               <SelectContent>
                 {filteredCategories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
+                  <SelectItem key={cat.id} value={cat.name}>
                     {cat.icon} {cat.name}
                   </SelectItem>
                 ))}
@@ -112,7 +122,7 @@ export function TransactionFormDialog({
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.id}>
+                  <SelectItem key={acc.id} value={acc.name}>
                     {acc.name}
                   </SelectItem>
                 ))}
