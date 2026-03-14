@@ -10,11 +10,13 @@ import {
   CreditCard,
   Tags,
   Settings,
+  ArrowRightLeft,
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Transactions", href: "/transactions", icon: ReceiptText },
+  { name: "Transfers", href: "/transfers", icon: ArrowRightLeft },
   { name: "Accounts", href: "/accounts", icon: CreditCard },
   { name: "Categories", href: "/categories", icon: Tags },
   { name: "Settings", href: "/settings", icon: Settings },

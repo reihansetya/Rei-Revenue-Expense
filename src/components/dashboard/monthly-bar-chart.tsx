@@ -41,7 +41,7 @@ export function MonthlyBarChart({ data }: MonthlyBarChartProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tren Bulanan</CardTitle>
+          <CardTitle className="text-base">Transaksi Bulanan</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[250px] text-muted-foreground">
@@ -55,11 +55,16 @@ export function MonthlyBarChart({ data }: MonthlyBarChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Tren Bulanan (6 Bulan Terakhir)</CardTitle>
+        <CardTitle className="text-base">
+          Transaksi Bulanan (6 Bulan Terakhir)
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <BarChart
+            data={data}
+            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="month"

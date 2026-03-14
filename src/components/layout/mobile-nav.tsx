@@ -2,7 +2,7 @@
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Home, ReceiptText, CreditCard, Tags, Settings } from "lucide-react";
+import { Menu, Wallet, Home, ReceiptText, CreditCard, Tags, Settings, ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { useState } from "react";
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Transactions", href: "/transactions", icon: ReceiptText },
+  { name: "Transfers", href: "/transfers", icon: ArrowRightLeft },
   { name: "Accounts", href: "/accounts", icon: CreditCard },
   { name: "Categories", href: "/categories", icon: Tags },
   { name: "Settings", href: "/settings", icon: Settings },

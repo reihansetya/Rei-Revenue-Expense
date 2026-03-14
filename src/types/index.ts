@@ -46,4 +46,47 @@ export interface Transaction {
   date: string;
   source: TransactionSource;
   created_at: string;
+  // Relations
+  accounts?: { name: string } | null;
+  categories?: { name: string; icon: string; color: string } | null;
+}
+
+// ============================================
+// NEW: TRANSFER TYPE
+// ============================================
+
+export interface Transfer {
+  id: string;
+  user_id: string;
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  description: string | null;
+  date: string;
+  source: string;
+  created_at: string;
+  // Relations (joined dari Supabase)
+  from_account?: {
+    id: string;
+    name: string;
+    type: AccountType;
+    icon: string;
+    color: string;
+  };
+  to_account?: {
+    id: string;
+    name: string;
+    type: AccountType;
+    icon: string;
+    color: string;
+  };
+}
+
+// Type untuk form input
+export interface TransferFormData {
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  date: string;
+  description?: string;
 }

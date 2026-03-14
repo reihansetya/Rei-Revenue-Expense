@@ -41,7 +41,7 @@ export function DailyTrendChart({ data }: DailyTrendChartProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tren Harian</CardTitle>
+          <CardTitle className="text-base">Transaksi Harian</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[200px] text-muted-foreground">
@@ -55,7 +55,7 @@ export function DailyTrendChart({ data }: DailyTrendChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Tren Harian Bulan Ini</CardTitle>
+        <CardTitle className="text-base">Transaksi Harian Bulan Ini</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={200}>
