@@ -1,8 +1,11 @@
-import { bot } from "../src/lib/telegram/bot";
+import { bot, setupBotCommands } from "../src/lib/telegram/bot";
 
 console.log("🤖 Telegram bot starting (polling mode)...");
 
-bot.launch({ dropPendingUpdates: true });
+setupBotCommands().then(() => {
+  bot.launch({ dropPendingUpdates: true });
+  console.log("✅ Bot is running! commands established.");
+});
 
 console.log("✅ Bot is running!");
 

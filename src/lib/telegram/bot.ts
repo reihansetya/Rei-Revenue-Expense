@@ -9,13 +9,14 @@ import {
   handleSummary,
   handleCallback,
 } from "./commands";
+import { Context } from "telegraf";
 import rateLimit from "telegraf-ratelimit";
 
 // Konfigurasi rate limit: 1 pesan per 2 detik
 const limitConfig = {
   window: 2000,
   limit: 1,
-  onLimitExceeded: (ctx: any) =>
+  onLimitExceeded: (ctx: Context) =>
     ctx.reply("⚠️ Terlalu cepat! Mohon tunggu sebentar."),
 };
 
@@ -38,22 +39,23 @@ bot.command("summary", handleSummary);
 
 bot.on("callback_query", handleCallback);
 
-// Daftarkan menu auto-suggest (blue menu button)
-bot.telegram.setMyCommands([
-  { command: "start", description: "Mulai bot & panduan" },
-  {
-    command: "expense",
-    description: "Catat pengeluaran (format: /expense 50rb makan)",
-  },
-  {
-    command: "income",
-    description: "Catat pemasukan (format: /income 5jt gaji)",
-  },
-  { command: "balance", description: "Cek saldo semua akun" },
-  { command: "summary", description: "Ringkasan transaksi bulan ini" },
-  { command: "link", description: "Hubungkan akun Telegram" },
-  { command: "help", description: "Bantuan penggunaan" },
-]);
+export async function setupBotCommands() {
+  await bot.telegram.setMyCommands([
+    { command: "start", description: "Mulai bot & panduan" },
+    {
+      command: "expense",
+      description: "Catat pengeluaran (format: /expense 50rb makan)",
+    },
+    {
+      command: "income",
+      description: "Catat pemasukan (format: /income 5jt gaji)",
+    },
+    { command: "balance", description: "Cek saldo semua dompet" },
+    { command: "summary", description: "Ringkasan transaksi bulan ini" },
+    { command: "link", description: "Hubungkan akun Telegram" },
+    { command: "help", description: "Bantuan penggunaan" },
+  ]);
+}
 
 bot.catch((err) => {
   console.error("Bot error:", err);
