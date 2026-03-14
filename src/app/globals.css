@@ -130,3 +130,14 @@
     @apply hover:cursor-pointer disabled:cursor-default;
   }
 }
+
+/* Custom Recharts Styling untuk Dark Mode */
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: var(--border);
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border);
+}
