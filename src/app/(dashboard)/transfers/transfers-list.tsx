@@ -61,7 +61,8 @@ export function TransfersList({ transfers }: TransfersListProps) {
       <div className="text-center py-12">
         <ArrowRight className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
         <p className="text-gray-500 dark:text-gray-400">
-          Belum ada transfer. Klik tombol "Transfer Baru" untuk memulai.
+          Belum ada transfer. Klik tombol <code>Transfer Baru</code> untuk
+          memulai.
         </p>
       </div>
     );
@@ -82,11 +83,15 @@ export function TransfersList({ transfers }: TransfersListProps) {
               {/* Account Flow */}
               <div className="flex flex-1 flex-wrap md:flex-nowrap items-center justify-between md:justify-start gap-2 sm:gap-4 md:gap-6 lg:gap-8 min-w-0 w-full md:w-auto">
                 {/* From Account */}
-                <div className="flex items-center gap-2 min-w-0" style={{flexBasis: '40%'}}>
+                <div
+                  className="flex items-center gap-2 min-w-0"
+                  style={{ flexBasis: "40%" }}
+                >
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
-                      backgroundColor: (transfer.from_account?.color || "#555") + "20",
+                      backgroundColor:
+                        (transfer.from_account?.color || "#555") + "20",
                     }}
                   >
                     <FromIcon
@@ -113,11 +118,15 @@ export function TransfersList({ transfers }: TransfersListProps) {
                 </div>
 
                 {/* To Account */}
-                <div className="flex items-center gap-2 min-w-0" style={{flexBasis: '40%'}}>
+                <div
+                  className="flex items-center gap-2 min-w-0"
+                  style={{ flexBasis: "40%" }}
+                >
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
-                      backgroundColor: (transfer.to_account?.color || "#555") + "20",
+                      backgroundColor:
+                        (transfer.to_account?.color || "#555") + "20",
                     }}
                   >
                     <ToIcon
@@ -153,16 +162,24 @@ export function TransfersList({ transfers }: TransfersListProps) {
 
                 {/* Delete Button */}
                 <AlertDialog>
-                  <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-600" />} >
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-400 hover:text-red-600"
+                      />
+                    }
+                  >
                     <Trash2 className="h-4 w-4" />
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Hapus Transfer?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Tindakan ini akan mengembalikan saldo transaksi ke kedua dompet.
-                        Transfer senilai {formatCurrency(transfer.amount)} akan
-                        dihapus permanen.
+                        Tindakan ini akan mengembalikan saldo transaksi ke kedua
+                        dompet. Transfer senilai{" "}
+                        {formatCurrency(transfer.amount)} akan dihapus permanen.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -177,7 +194,6 @@ export function TransfersList({ transfers }: TransfersListProps) {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-
               </div>
             </div>
           </div>

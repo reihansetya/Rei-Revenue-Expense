@@ -70,7 +70,9 @@ export function TransactionFormDialog({
     setLoading(false);
   }
 
-  const selectedCategory = filteredCategories.find((c) => c.id === selectedCategoryId);
+  const selectedCategory = filteredCategories.find(
+    (c) => c.id === selectedCategoryId,
+  );
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
 
   return (
@@ -116,7 +118,10 @@ export function TransactionFormDialog({
           {/* Kategori — controlled, tidak pakai name di Select */}
           <div className="space-y-2">
             <Label>Kategori</Label>
-            <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+            <Select
+              value={selectedCategoryId}
+              onValueChange={(val) => setSelectedCategoryId(val || "")}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih kategori">
                   {selectedCategory
@@ -132,7 +137,8 @@ export function TransactionFormDialog({
                 ))}
                 {filteredCategories.length === 0 && (
                   <SelectItem value="none" disabled>
-                    Belum ada kategori {selectedType === "income" ? "pemasukan" : "pengeluaran"}
+                    Belum ada kategori{" "}
+                    {selectedType === "income" ? "pemasukan" : "pengeluaran"}
                   </SelectItem>
                 )}
               </SelectContent>
@@ -142,7 +148,10 @@ export function TransactionFormDialog({
           {/* Akun — controlled, tidak pakai name di Select */}
           <div className="space-y-2">
             <Label>Dompet</Label>
-            <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+            <Select
+              value={selectedAccountId}
+              onValueChange={(val) => setSelectedAccountId(val || "")}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih dompet">
                   {selectedAccount ? selectedAccount.name : "Pilih dompet"}

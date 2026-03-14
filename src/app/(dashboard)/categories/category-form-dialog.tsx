@@ -13,11 +13,37 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-const CATEGORY_ICONS = ["🍔", "🚗", "🛒", "🎬", "📱", "💊", "📚", "📊", "📦", "💰", "💻", "📈", "🎁", "💵", "🏠", "✈️", "🎮", "🐼"];
+const CATEGORY_ICONS = [
+  "🍔",
+  "🚗",
+  "🛒",
+  "🎬",
+  "📱",
+  "💊",
+  "📚",
+  "📊",
+  "📦",
+  "💰",
+  "💻",
+  "📈",
+  "🎁",
+  "💵",
+  "🏠",
+  "✈️",
+  "🎮",
+  "🐼",
+];
 
 const CATEGORY_COLORS = [
-  "#EF4444", "#F97316", "#EC4899", "#8B5CF6", "#6366F1",
-  "#14B8A6", "#3B82F6", "#10B981", "#6B7280",
+  "#EF4444",
+  "#F97316",
+  "#EC4899",
+  "#8B5CF6",
+  "#6366F1",
+  "#14B8A6",
+  "#3B82F6",
+  "#10B981",
+  "#6B7280",
 ];
 
 interface CategoryFormDialogProps {
@@ -28,10 +54,18 @@ interface CategoryFormDialogProps {
   defaultValues?: Category;
 }
 
-export function CategoryFormDialog({ open, onClose, onSubmit, title, defaultValues }: CategoryFormDialogProps) {
+export function CategoryFormDialog({
+  open,
+  onClose,
+  onSubmit,
+  title,
+  defaultValues,
+}: CategoryFormDialogProps) {
   const [loading, setLoading] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(defaultValues?.icon || "📦");
-  const [selectedColor, setSelectedColor] = useState(defaultValues?.color || "#3B82F6");
+  const [selectedColor, setSelectedColor] = useState(
+    defaultValues?.color || "#3B82F6",
+  );
 
   if (!open) return null;
 
