@@ -4,26 +4,41 @@ import { useState } from "react";
 import { Category } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Tags, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Tags,
+  ArrowUpCircle,
+  ArrowDownCircle,
+} from "lucide-react";
 import { createCategory, updateCategory, deleteCategory } from "./actions";
 import { CategoryFormDialog } from "./category-form-dialog";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export function CategoriesList({ initialCategories }: { initialCategories: Category[] }) {
+export function CategoriesList({
+  initialCategories,
+}: {
+  initialCategories: Category[];
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const router = useRouter();
 
   const incomeCategories = initialCategories.filter((c) => c.type === "income");
-  const expenseCategories = initialCategories.filter((c) => c.type === "expense");
+  const expenseCategories = initialCategories.filter(
+    (c) => c.type === "expense",
+  );
 
   async function handleCreate(formData: FormData) {
     const result = await createCategory(formData);
     if (result?.error) {
-      alert(result.error);
+      toast.error(result.error);
       return;
     }
     setDialogOpen(false);
+    toast.success("Kategori berhasil ditambahkan");
     router.refresh();
   }
 
@@ -31,29 +46,48 @@ export function CategoriesList({ initialCategories }: { initialCategories: Categ
     if (!editingCategory) return;
     const result = await updateCategory(editingCategory.id, formData);
     if (result?.error) {
-      alert(result.error);
+      toast.error(result.error);
       return;
     }
     setEditingCategory(null);
+    toast.success("Kategori berhasil diupdate");
     router.refresh();
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Yakin ingin menghapus kategori ini?")) return;
-    const result = await deleteCategory(id);
-    if (result?.error) {
-      alert(result.error);
-    }
-    router.refresh();
+    toast("Hapus kategori ini?", {
+      action: {
+        label: "Hapus",
+        onClick: async () => {
+          const result = await deleteCategory(id);
+          if (result?.error) {
+            toast.error(result.error);
+            return;
+          }
+          toast.success("Kategori berhasil dihapus");
+          router.refresh();
+        },
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {},
+      },
+    });
   }
 
-  function renderCategoryGroup(title: string, icon: React.ReactNode, categories: Category[]) {
+  function renderCategoryGroup(
+    title: string,
+    icon: React.ReactNode,
+    categories: Category[],
+  ) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           {icon}
           <h2 className="font-semibold">{title}</h2>
-          <span className="text-xs text-muted-foreground">({categories.length})</span>
+          <span className="text-xs text-muted-foreground">
+            ({categories.length})
+          </span>
         </div>
         <div className="grid gap-2">
           {categories.map((category) => (
@@ -90,7 +124,9 @@ export function CategoriesList({ initialCategories }: { initialCategories: Categ
             </Card>
           ))}
           {categories.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">Belum ada kategori</p>
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Belum ada kategori
+            </p>
           )}
         </div>
       </div>
@@ -110,12 +146,12 @@ export function CategoriesList({ initialCategories }: { initialCategories: Categ
         {renderCategoryGroup(
           "Pemasukan",
           <ArrowUpCircle className="h-5 w-5 text-emerald-500" />,
-          incomeCategories
+          incomeCategories,
         )}
         {renderCategoryGroup(
           "Pengeluaran",
           <ArrowDownCircle className="h-5 w-5 text-rose-500" />,
-          expenseCategories
+          expenseCategories,
         )}
       </div>
 

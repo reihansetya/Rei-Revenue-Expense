@@ -31,31 +31,51 @@ export function TransactionFormDialog({
 }: TransactionFormDialogProps) {
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("expense");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
   const filteredCategories = categories.filter((c) => c.type === selectedType);
   const today = new Date().toISOString().split("T")[0];
 
   if (!open) return null;
 
+  function handleClose() {
+    setSelectedCategoryId("");
+    setSelectedAccountId("");
+    setSelectedType("expense");
+    onClose();
+  }
+
+  function handleTypeChange(type: string) {
+    setSelectedType(type);
+    setSelectedCategoryId(""); // reset kategori saat ganti tipe
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
-    
+
     // Clean up the formatted amount (e.g., "1.500.000" -> "1500000")
     const rawAmount = formData.get("amount") as string;
     if (rawAmount) {
       formData.set("amount", rawAmount.replace(/\./g, ""));
     }
-    
+
     formData.set("type", selectedType);
+    formData.set("category_id", selectedCategoryId);
+    formData.set("account_id", selectedAccountId);
+
     await onSubmit(formData);
     setLoading(false);
   }
 
+  const selectedCategory = filteredCategories.find((c) => c.id === selectedCategoryId);
+  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50" onClick={handleClose} />
       <div className="relative z-50 w-full max-w-md rounded-lg bg-background border p-6 shadow-lg max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Tambah Transaksi</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,7 +85,7 @@ export function TransactionFormDialog({
               type="button"
               variant={selectedType === "expense" ? "default" : "outline"}
               className={`flex-1 ${selectedType === "expense" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
-              onClick={() => setSelectedType("expense")}
+              onClick={() => handleTypeChange("expense")}
             >
               Pengeluaran
             </Button>
@@ -73,7 +93,7 @@ export function TransactionFormDialog({
               type="button"
               variant={selectedType === "income" ? "default" : "outline"}
               className={`flex-1 ${selectedType === "income" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}`}
-              onClick={() => setSelectedType("income")}
+              onClick={() => handleTypeChange("income")}
             >
               Pemasukan
             </Button>
@@ -93,15 +113,20 @@ export function TransactionFormDialog({
             />
           </div>
 
+          {/* Kategori — controlled, tidak pakai name di Select */}
           <div className="space-y-2">
-            <Label htmlFor="category_id">Kategori</Label>
-            <Select name="category_id">
+            <Label>Kategori</Label>
+            <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
               <SelectTrigger>
-                <SelectValue placeholder="Pilih kategori" />
+                <SelectValue placeholder="Pilih kategori">
+                  {selectedCategory
+                    ? `${selectedCategory.icon} ${selectedCategory.name}`
+                    : "Pilih kategori"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {filteredCategories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.name}>
+                  <SelectItem key={cat.id} value={cat.id}>
                     {cat.icon} {cat.name}
                   </SelectItem>
                 ))}
@@ -114,15 +139,18 @@ export function TransactionFormDialog({
             </Select>
           </div>
 
+          {/* Akun — controlled, tidak pakai name di Select */}
           <div className="space-y-2">
-            <Label htmlFor="account_id">Akun</Label>
-            <Select name="account_id">
+            <Label>Akun</Label>
+            <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
               <SelectTrigger>
-                <SelectValue placeholder="Pilih akun" />
+                <SelectValue placeholder="Pilih akun">
+                  {selectedAccount ? selectedAccount.name : "Pilih akun"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.name}>
+                  <SelectItem key={acc.id} value={acc.id}>
                     {acc.name}
                   </SelectItem>
                 ))}
@@ -156,7 +184,7 @@ export function TransactionFormDialog({
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Batal
             </Button>
             <Button type="submit" disabled={loading}>

@@ -8,6 +8,7 @@ import { Plus, Pencil, Trash2, Wallet, Building2, Smartphone, PiggyBank, Banknot
 import { createAccount, updateAccount, deleteAccount } from "./actions";
 import { AccountFormDialog } from "./account-form-dialog";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const accountTypeIcons: Record<string, React.ReactNode> = {
   bank: <Building2 className="h-5 w-5" />,
@@ -40,12 +41,19 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
   const totalBalance = initialAccounts.reduce((sum, acc) => sum + Number(acc.balance), 0);
 
   async function handleCreate(formData: FormData) {
+    // Clean up formatted amount before submit
+    const rawBalance = formData.get("balance") as string;
+    if (rawBalance) {
+      formData.set("balance", rawBalance.replace(/\./g, ""));
+    }
+
     const result = await createAccount(formData);
     if (result?.error) {
-      alert(result.error);
+      toast.error(result.error);
       return;
     }
     setDialogOpen(false);
+    toast.success("Akun berhasil ditambahkan");
     router.refresh();
   }
 
@@ -53,20 +61,33 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
     if (!editingAccount) return;
     const result = await updateAccount(editingAccount.id, formData);
     if (result?.error) {
-      alert(result.error);
+      toast.error(result.error);
       return;
     }
     setEditingAccount(null);
+    toast.success("Akun berhasil diupdate");
     router.refresh();
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Yakin ingin menghapus akun ini?")) return;
-    const result = await deleteAccount(id);
-    if (result?.error) {
-      alert(result.error);
-    }
-    router.refresh();
+    toast("Hapus akun ini?", {
+      action: {
+        label: "Hapus",
+        onClick: async () => {
+          const result = await deleteAccount(id);
+          if (result?.error) {
+            toast.error(result.error);
+            return;
+          }
+          toast.success("Akun berhasil dihapus");
+          router.refresh();
+        },
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {},
+      },
+    });
   }
 
   return (

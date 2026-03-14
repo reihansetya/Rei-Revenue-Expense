@@ -12,10 +12,17 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { NumericFormat } from "react-number-format";
 
 const ACCOUNT_COLORS = [
-  "#3B82F6", "#10B981", "#EF4444", "#F97316", "#8B5CF6",
-  "#EC4899", "#14B8A6", "#6366F1",
+  "#3B82F6",
+  "#10B981",
+  "#EF4444",
+  "#F97316",
+  "#8B5CF6",
+  "#EC4899",
+  "#14B8A6",
+  "#6366F1",
 ];
 
 interface AccountFormDialogProps {
@@ -26,9 +33,17 @@ interface AccountFormDialogProps {
   defaultValues?: Account;
 }
 
-export function AccountFormDialog({ open, onClose, onSubmit, title, defaultValues }: AccountFormDialogProps) {
+export function AccountFormDialog({
+  open,
+  onClose,
+  onSubmit,
+  title,
+  defaultValues,
+}: AccountFormDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(defaultValues?.color || "#3B82F6");
+  const [selectedColor, setSelectedColor] = useState(
+    defaultValues?.color || "#3B82F6",
+  );
 
   if (!open) return null;
 
@@ -76,13 +91,15 @@ export function AccountFormDialog({ open, onClose, onSubmit, title, defaultValue
           {!defaultValues && (
             <div className="space-y-2">
               <Label htmlFor="balance">Saldo Awal</Label>
-              <Input
+              <NumericFormat
                 id="balance"
                 name="balance"
-                type="number"
-                placeholder="0"
-                defaultValue="0"
-                min="0"
+                customInput={Input}
+                thousandSeparator="."
+                decimalSeparator=","
+                placeholder="50.000"
+                allowNegative={false}
+                required
               />
             </div>
           )}

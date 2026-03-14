@@ -9,8 +9,6 @@ import {
   Plus,
   Trash2,
   ReceiptText,
-  ArrowUpCircle,
-  ArrowDownCircle,
   Search,
 } from "lucide-react";
 import { createTransaction, deleteTransaction } from "./actions";
@@ -18,6 +16,7 @@ import { TransactionFormDialog } from "./transaction-form-dialog";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { toast } from "sonner";
 
 function formatRupiah(amount: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -63,20 +62,34 @@ export function TransactionsList({
   async function handleCreate(formData: FormData) {
     const result = await createTransaction(formData);
     if (result?.error) {
-      alert(result.error);
+      toast.error(result.error, { closeButton: true });
       return;
     }
     setDialogOpen(false);
+    toast.success("Transaksi berhasil ditambahkan", { closeButton: true });
     router.refresh();
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Yakin ingin menghapus transaksi ini?")) return;
-    const result = await deleteTransaction(id);
-    if (result?.error) {
-      alert(result.error);
-    }
-    router.refresh();
+    toast("Hapus transaksi ini?", {
+      closeButton: true,
+      action: {
+        label: "Hapus",
+        onClick: async () => {
+          const result = await deleteTransaction(id);
+          if (result?.error) {
+            toast.error(result.error, { closeButton: true });
+            return;
+          }
+          toast.success("Transaksi berhasil dihapus", { closeButton: true });
+          router.refresh();
+        },
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {},
+      },
+    });
   }
 
   return (
