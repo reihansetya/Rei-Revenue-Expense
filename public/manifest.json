@@ -65,5 +65,14 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tampilan Mobile Expense Tracker"
+    }
+  ],
   "categories": ["finance", "productivity"]
 }
