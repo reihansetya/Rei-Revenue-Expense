@@ -32,7 +32,7 @@ export function SummaryCards({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatRupiah(totalBalance)}</div>
-          <p className="text-xs text-muted-foreground">Semua akun</p>
+          <p className="text-xs text-muted-foreground">Semua Dompet</p>
         </CardContent>
       </Card>
 
