@@ -38,7 +38,8 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const router = useRouter();
 
-  const totalBalance = initialAccounts.reduce((sum, acc) => sum + Number(acc.balance), 0);
+  const sortedAccounts = [...initialAccounts].sort((a, b) => Number(b.balance) - Number(a.balance));
+  const totalBalance = sortedAccounts.reduce((sum, acc) => sum + Number(acc.balance), 0);
 
   async function handleCreate(formData: FormData) {
     // Clean up formatted amount before submit
@@ -105,7 +106,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
 
       {/* Header + Add Button */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{initialAccounts.length} dompet terdaftar</p>
+        <p className="text-sm text-muted-foreground">{sortedAccounts.length} dompet terdaftar</p>
         <Button onClick={() => setDialogOpen(true)} size="sm">
           <Plus className="h-4 w-4 mr-1" />
           Tambah Dompet
@@ -114,7 +115,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
 
       {/* Account Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {initialAccounts.map((account) => (
+        {sortedAccounts.map((account) => (
           <Card key={account.id} className="overflow-hidden">
             <CardContent className="p-0">
               <div
@@ -162,7 +163,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
           </Card>
         ))}
 
-        {initialAccounts.length === 0 && (
+        {sortedAccounts.length === 0 && (
           <div className="col-span-full text-center py-12 text-muted-foreground">
             <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>Belum ada dompet. Tambahkan dompet pertama Anda!</p>
