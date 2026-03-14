@@ -63,7 +63,7 @@ export function AccountFormDialog({
         <h2 className="text-lg font-semibold mb-4">{title}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nama Akun</Label>
+            <Label htmlFor="name">Nama Dompet</Label>
             <Input
               id="name"
               name="name"
@@ -74,16 +74,16 @@ export function AccountFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="type">Tipe</Label>
+            <Label htmlFor="type">Tipe Dompet</Label>
             <Select name="type" defaultValue={defaultValues?.type || "bank"}>
               <SelectTrigger>
-                <SelectValue placeholder="Pilih tipe akun" />
+                <SelectValue placeholder="Pilih tipe dompet" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bank">Bank</SelectItem>
+                <SelectItem value="bank">Rekening Bank</SelectItem>
                 <SelectItem value="ewallet">E-Wallet</SelectItem>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="investment">Investment</SelectItem>
+                <SelectItem value="cash">Uang Tunai</SelectItem>
+                <SelectItem value="investment">Investasi</SelectItem>
               </SelectContent>
             </Select>
           </div>

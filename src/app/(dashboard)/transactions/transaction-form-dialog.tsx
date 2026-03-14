@@ -141,11 +141,11 @@ export function TransactionFormDialog({
 
           {/* Akun — controlled, tidak pakai name di Select */}
           <div className="space-y-2">
-            <Label>Akun</Label>
+            <Label>Dompet</Label>
             <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
               <SelectTrigger>
-                <SelectValue placeholder="Pilih akun">
-                  {selectedAccount ? selectedAccount.name : "Pilih akun"}
+                <SelectValue placeholder="Pilih dompet">
+                  {selectedAccount ? selectedAccount.name : "Pilih dompet"}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -156,7 +156,7 @@ export function TransactionFormDialog({
                 ))}
                 {accounts.length === 0 && (
                   <SelectItem value="none" disabled>
-                    Belum ada akun
+                    Belum ada dompet
                   </SelectItem>
                 )}
               </SelectContent>

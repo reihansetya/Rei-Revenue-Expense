@@ -15,11 +15,11 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
-  { name: "Transactions", href: "/transactions", icon: ReceiptText },
-  { name: "Transfers", href: "/transfers", icon: ArrowRightLeft },
-  { name: "Accounts", href: "/accounts", icon: CreditCard },
-  { name: "Categories", href: "/categories", icon: Tags },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Transaksi", href: "/transactions", icon: ReceiptText },
+  { name: "Transfer", href: "/transfers", icon: ArrowRightLeft },
+  { name: "Dompet", href: "/accounts", icon: CreditCard },
+  { name: "Kategori", href: "/categories", icon: Tags },
+  { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {

@@ -7,7 +7,12 @@ export default async function AccountsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Akun</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Kelola Dompet</h1>
+          <p className="text-gray-500 mt-1">
+            Daftar semua dompet keuangan Anda
+          </p>
+        </div>
       </div>
       <AccountsList initialAccounts={accounts} />
     </div>

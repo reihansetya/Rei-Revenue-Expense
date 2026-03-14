@@ -100,17 +100,17 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowRightLeft className="h-5 w-5" />
-            Transfer Antar Akun
+            Transfer Antar Dompet
           </DialogTitle>
           <DialogDescription>
-            Pindahkan saldo dari satu akun ke akun lainnya
+            Pindahkan saldo dari satu dompet ke dompet lainnya
           </DialogDescription>
         </DialogHeader>
 
         <form action={handleSubmit} className="space-y-4 mt-4">
           {/* From Account */}
           <div className="space-y-2">
-            <Label htmlFor="from_account_id">Dari Akun</Label>
+            <Label htmlFor="from_account_id">Dari Dompet</Label>
             <Select
               name="from_account_id"
               value={fromAccountId}
@@ -118,13 +118,13 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Pilih akun sumber">
+                <SelectValue placeholder="Pilih dompet sumber">
                   {fromAccount ? (
                     <span className="flex items-center gap-2">
                       {fromAccount.name}
                     </span>
                   ) : (
-                    "Pilih akun sumber"
+                    "Pilih dompet sumber"
                   )}
                 </SelectValue>
               </SelectTrigger>
@@ -157,7 +157,7 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
 
           {/* To Account */}
           <div className="space-y-2">
-            <Label htmlFor="to_account_id">Ke Akun</Label>
+            <Label htmlFor="to_account_id">Ke Dompet</Label>
             <Select
               name="to_account_id"
               value={toAccountId}
@@ -165,13 +165,13 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Pilih akun tujuan">
+                <SelectValue placeholder="Pilih dompet tujuan">
                   {toAccount ? (
                     <span className="flex items-center gap-2">
                       {toAccount.name}
                     </span>
                   ) : (
-                    "Pilih akun tujuan"
+                    "Pilih dompet tujuan"
                   )}
                 </SelectValue>
               </SelectTrigger>

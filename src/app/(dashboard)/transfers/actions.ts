@@ -86,11 +86,11 @@ export async function createTransfer(formData: FormData): Promise<{
 
   // Validasi
   if (!from_account_id || !to_account_id) {
-    return { error: "Pilih akun sumber dan tujuan" };
+    return { error: "Pilih dompet sumber dan tujuan" };
   }
 
   if (from_account_id === to_account_id) {
-    return { error: "Akun sumber dan tujuan tidak boleh sama" };
+    return { error: "Dompet sumber dan tujuan tidak boleh sama" };
   }
 
   if (!amount || amount <= 0) {
@@ -111,7 +111,7 @@ export async function createTransfer(formData: FormData): Promise<{
 
   if (fromAccount && fromAccount.balance < amount) {
     return {
-      error: `Saldo ${fromAccount.name} tidak mencukupi. Saldo: Rp ${fromAccount.balance.toLocaleString("id-ID")}`,
+      error: `Saldo dompet ${fromAccount.name} tidak mencukupi. Saldo: Rp ${fromAccount.balance.toLocaleString("id-ID")}`,
     };
   }
 

@@ -1,8 +1,17 @@
 "use client";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Home, ReceiptText, CreditCard, Tags, Settings, ArrowRightLeft } from "lucide-react";
+
+import {
+  Menu,
+  Wallet,
+  Home,
+  ReceiptText,
+  CreditCard,
+  Tags,
+  Settings,
+  ArrowRightLeft,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -10,11 +19,11 @@ import { useState } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
-  { name: "Transactions", href: "/transactions", icon: ReceiptText },
-  { name: "Transfers", href: "/transfers", icon: ArrowRightLeft },
-  { name: "Accounts", href: "/accounts", icon: CreditCard },
-  { name: "Categories", href: "/categories", icon: Tags },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Transaksi", href: "/transactions", icon: ReceiptText },
+  { name: "Transfer", href: "/transfers", icon: ArrowRightLeft },
+  { name: "Dompet", href: "/accounts", icon: CreditCard },
+  { name: "Kategori", href: "/categories", icon: Tags },
+  { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
 export function MobileNav() {
@@ -24,11 +33,11 @@ export function MobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger className="sm:hidden inline-flex items-center justify-center rounded-md w-10 h-10 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
-        <Menu className="h-5 w-5"  />
+        <Menu className="h-5 w-5" />
         <span className="sr-only">Toggle menu</span>
       </SheetTrigger>
       <SheetContent side="left" className="sm:max-w-xs">
-        <nav className="grid gap-6 text-lg font-medium">
+        <nav className="grid gap-6 text-lg font-medium mt-5">
           <Link
             href="/"
             className="flex items-center gap-4 px-2.5 text-lg font-semibold"
@@ -49,7 +58,7 @@ export function MobileNav() {
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
-                    isActive && "bg-muted text-foreground"
+                    isActive && "bg-muted text-foreground",
                   )}
                 >
                   <item.icon className="h-5 w-5" />

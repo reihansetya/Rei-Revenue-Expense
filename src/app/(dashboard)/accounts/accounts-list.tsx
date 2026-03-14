@@ -53,7 +53,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
       return;
     }
     setDialogOpen(false);
-    toast.success("Akun berhasil ditambahkan");
+    toast.success("Dompet berhasil ditambahkan");
     router.refresh();
   }
 
@@ -65,12 +65,12 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
       return;
     }
     setEditingAccount(null);
-    toast.success("Akun berhasil diupdate");
+    toast.success("Dompet berhasil diupdate");
     router.refresh();
   }
 
   async function handleDelete(id: string) {
-    toast("Hapus akun ini?", {
+    toast("Hapus dompet ini?", {
       action: {
         label: "Hapus",
         onClick: async () => {
@@ -79,7 +79,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
             toast.error(result.error);
             return;
           }
-          toast.success("Akun berhasil dihapus");
+          toast.success("Dompet berhasil dihapus");
           router.refresh();
         },
       },
@@ -105,10 +105,10 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
 
       {/* Header + Add Button */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{initialAccounts.length} akun terdaftar</p>
+        <p className="text-sm text-muted-foreground">{initialAccounts.length} dompet terdaftar</p>
         <Button onClick={() => setDialogOpen(true)} size="sm">
           <Plus className="h-4 w-4 mr-1" />
-          Tambah Akun
+          Tambah Dompet
         </Button>
       </div>
 
@@ -165,7 +165,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
         {initialAccounts.length === 0 && (
           <div className="col-span-full text-center py-12 text-muted-foreground">
             <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Belum ada akun. Tambahkan akun pertama Anda!</p>
+            <p>Belum ada dompet. Tambahkan dompet pertama Anda!</p>
           </div>
         )}
       </div>
@@ -175,7 +175,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onSubmit={handleCreate}
-        title="Tambah Akun Baru"
+        title="Tambah Dompet Baru"
       />
 
       {editingAccount && (
@@ -183,7 +183,7 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
           open={!!editingAccount}
           onClose={() => setEditingAccount(null)}
           onSubmit={handleUpdate}
-          title="Edit Akun"
+          title="Ubah Dompet"
           defaultValues={editingAccount}
         />
       )}

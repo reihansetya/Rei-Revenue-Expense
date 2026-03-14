@@ -160,7 +160,7 @@ export function TransfersList({ transfers }: TransfersListProps) {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Hapus Transfer?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Tindakan ini akan mengembalikan saldo transaksi ke kedua akun.
+                        Tindakan ini akan mengembalikan saldo transaksi ke kedua dompet.
                         Transfer senilai {formatCurrency(transfer.amount)} akan
                         dihapus permanen.
                       </AlertDialogDescription>
