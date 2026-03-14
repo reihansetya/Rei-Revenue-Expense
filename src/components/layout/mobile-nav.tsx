@@ -16,6 +16,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { PWAManualInstall } from "../pwa-manual-install";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -66,6 +67,9 @@ export function MobileNav() {
                 </Link>
               );
             })}
+          </div>
+          <div className="mt-auto pb-4">
+            <PWAManualInstall />
           </div>
         </nav>
       </SheetContent>

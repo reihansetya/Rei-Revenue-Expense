@@ -12,6 +12,7 @@ import {
   Settings,
   ArrowRightLeft,
 } from "lucide-react";
+import { PWAManualInstall } from "../pwa-manual-install";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -56,6 +57,7 @@ export function Sidebar() {
             })}
           </nav>
         </div>
+        <PWAManualInstall />
       </div>
     </div>
   );
