@@ -1,6 +1,13 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function formatRupiah(amount: number) {
@@ -24,7 +31,10 @@ interface SpendingPieChartProps {
   totalExpense: number;
 }
 
-export function SpendingPieChart({ data, totalExpense }: SpendingPieChartProps) {
+export function SpendingPieChart({
+  data,
+  totalExpense,
+}: SpendingPieChartProps) {
   // Transform data for recharts
   const chartData = data.map((item) => ({
     name: `${item.icon} ${item.name}`,
@@ -70,7 +80,7 @@ export function SpendingPieChart({ data, totalExpense }: SpendingPieChartProps) 
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => formatRupiah(value)}
+              formatter={(value: any) => formatRupiah(Number(value))}
               contentStyle={{
                 backgroundColor: "var(--foreground)",
                 color: "var(--background)",
@@ -87,9 +97,13 @@ export function SpendingPieChart({ data, totalExpense }: SpendingPieChartProps) 
         {/* List breakdown */}
         <div className="mt-4 space-y-2">
           {data.slice(0, 5).map((item) => {
-            const percentage = totalExpense > 0 ? (item.total / totalExpense) * 100 : 0;
+            const percentage =
+              totalExpense > 0 ? (item.total / totalExpense) * 100 : 0;
             return (
-              <div key={item.name} className="flex items-center justify-between text-sm">
+              <div
+                key={item.name}
+                className="flex items-center justify-between text-sm"
+              >
                 <div className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
@@ -104,7 +118,9 @@ export function SpendingPieChart({ data, totalExpense }: SpendingPieChartProps) 
                   <span className="text-muted-foreground text-xs">
                     {percentage.toFixed(0)}%
                   </span>
-                  <span className="font-medium">{formatRupiah(item.total)}</span>
+                  <span className="font-medium">
+                    {formatRupiah(item.total)}
+                  </span>
                 </div>
               </div>
             );
