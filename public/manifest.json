@@ -65,29 +65,5 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/dashboard.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "label": "Dashboard"
-    }
-  ],
-  "categories": ["finance", "productivity"],
-  "shortcuts": [
-    {
-      "name": "Tambah Transaksi",
-      "short_name": "Transaksi",
-      "description": "Catat transaksi baru",
-      "url": "/transactions",
-      "icons": [{ "src": "/icons/shortcut-transaction.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Transfer Antar Dompet",
-      "short_name": "Transfer",
-      "description": "Transfer saldo antar dompet",
-      "url": "/transfers",
-      "icons": [{ "src": "/icons/shortcut-transfer.png", "sizes": "96x96" }]
-    }
-  ]
+  "categories": ["finance", "productivity"]
 }
