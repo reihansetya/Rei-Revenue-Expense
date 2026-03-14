@@ -9,15 +9,9 @@ import {
   Tooltip,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useHideNominal } from "@/components/providers/hide-nominal-provider";
+import { FormattedCurrency } from "@/components/ui/formatted-currency";
 
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 interface CategoryData {
   name: string;
@@ -35,6 +29,7 @@ export function SpendingPieChart({
   data,
   totalExpense,
 }: SpendingPieChartProps) {
+  const { isHidden } = useHideNominal();
   // Transform data for recharts
   const chartData = data.map((item) => ({
     name: `${item.icon} ${item.name}`,
@@ -50,7 +45,7 @@ export function SpendingPieChart({
           <CardTitle className="text-base">Pengeluaran per Kategori</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+          <div className="flex items-center justify-center h-62.5 text-muted-foreground">
             Belum ada pengeluaran bulan ini
           </div>
         </CardContent>
@@ -80,7 +75,12 @@ export function SpendingPieChart({
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: any) => formatRupiah(Number(value))}
+              formatter={(value: any) => isHidden ? "Rp ••••••" : new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }).format(Number(value))}
               contentStyle={{
                 backgroundColor: "var(--foreground)",
                 color: "var(--background)",
@@ -118,9 +118,10 @@ export function SpendingPieChart({
                   <span className="text-muted-foreground text-xs">
                     {percentage.toFixed(0)}%
                   </span>
-                  <span className="font-medium">
-                    {formatRupiah(item.total)}
-                  </span>
+                  <FormattedCurrency
+                    amount={item.total}
+                    className="font-medium"
+                  />
                 </div>
               </div>
             );

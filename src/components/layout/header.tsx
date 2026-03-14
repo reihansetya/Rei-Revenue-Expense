@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
+import { HideNominalToggle } from "@/components/ui/hide-nominal-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ export function Header() {
       <MobileNav />
 
       <div className="flex items-center gap-4 ml-auto">
+        <HideNominalToggle />
         <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger

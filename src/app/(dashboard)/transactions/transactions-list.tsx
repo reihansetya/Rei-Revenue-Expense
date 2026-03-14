@@ -11,6 +11,7 @@ import {
   ReceiptText,
   Search,
 } from "lucide-react";
+import { FormattedCurrency } from "@/components/ui/formatted-currency";
 import { createTransaction, deleteTransaction } from "./actions";
 import { TransactionFormDialog } from "./transaction-form-dialog";
 import { useRouter } from "next/navigation";
@@ -18,14 +19,6 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
 
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 interface TransactionWithRelations {
   id: string;
@@ -156,16 +149,16 @@ export function TransactionsList({
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p
+                  <FormattedCurrency
+                    amount={Number(transaction.amount)}
+                    showSign
+                    sign={transaction.type === "income" ? "+" : "-"}
                     className={`font-semibold ${
                       transaction.type === "income"
                         ? "text-emerald-500"
                         : "text-rose-500"
                     }`}
-                  >
-                    {transaction.type === "income" ? "+" : "-"}
-                    {formatRupiah(Number(transaction.amount))}
-                  </p>
+                  />
                 </div>
                 <Button
                   variant="ghost"

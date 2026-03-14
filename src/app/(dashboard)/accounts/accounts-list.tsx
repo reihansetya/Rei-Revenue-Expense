@@ -9,6 +9,7 @@ import { createAccount, updateAccount, deleteAccount } from "./actions";
 import { AccountFormDialog } from "./account-form-dialog";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { FormattedCurrency } from "@/components/ui/formatted-currency";
 
 const accountTypeIcons: Record<string, React.ReactNode> = {
   bank: <Building2 className="h-5 w-5" />,
@@ -24,14 +25,6 @@ const accountTypeLabels: Record<string, string> = {
   investment: "Investment",
 };
 
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -98,7 +91,10 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
         <CardContent className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm text-muted-foreground">Total Saldo</p>
-            <p className="text-3xl font-bold">{formatRupiah(totalBalance)}</p>
+            <FormattedCurrency
+              amount={totalBalance}
+              className="text-3xl font-bold"
+            />
           </div>
           <Wallet className="h-8 w-8 text-muted-foreground" />
         </CardContent>
@@ -156,7 +152,10 @@ export function AccountsList({ initialAccounts }: { initialAccounts: Account[] }
                   </div>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{formatRupiah(Number(account.balance))}</p>
+                  <FormattedCurrency
+                    amount={Number(account.balance)}
+                    className="text-2xl font-bold"
+                  />
                 </div>
               </div>
             </CardContent>

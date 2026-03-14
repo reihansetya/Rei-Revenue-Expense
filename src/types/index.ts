@@ -90,3 +90,14 @@ export interface TransferFormData {
   date: string;
   description?: string;
 }
+
+// ============================================
+// HIDE NOMINAL TYPES
+// ============================================
+
+export interface HideNominalContextType {
+  isHidden: boolean;
+  toggle: () => void;
+  show: () => void;
+  hide: () => void;
+}

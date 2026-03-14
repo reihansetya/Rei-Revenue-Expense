@@ -24,6 +24,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  FormattedCurrency,
+} from "@/components/ui/formatted-currency";
 import type { Transfer } from "@/types";
 
 interface TransfersListProps {
@@ -38,14 +41,6 @@ const accountIcons = {
   investment: TrendingUp,
 };
 
-// Format currency IDR
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
 
 export function TransfersList({ transfers }: TransfersListProps) {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -88,7 +83,7 @@ export function TransfersList({ transfers }: TransfersListProps) {
                   style={{ flexBasis: "40%" }}
                 >
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
                     style={{
                       backgroundColor:
                         (transfer.from_account?.color || "#555") + "20",
@@ -110,11 +105,12 @@ export function TransfersList({ transfers }: TransfersListProps) {
                 </div>
 
                 {/* Arrow & Amount (Mobile Responsive) */}
-                <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                <div className="flex flex-col items-center gap-1 shrink-0">
                   <ArrowRight className="h-4 w-4 text-gray-400 hidden md:block" />
-                  <span className="font-semibold text-sm md:text-base text-red-600 dark:text-red-400 text-center">
-                    {formatCurrency(transfer.amount)}
-                  </span>
+                  <FormattedCurrency
+                    amount={transfer.amount}
+                    className="font-semibold text-sm md:text-base text-red-600 dark:text-red-400 text-center"
+                  />
                 </div>
 
                 {/* To Account */}
@@ -123,7 +119,7 @@ export function TransfersList({ transfers }: TransfersListProps) {
                   style={{ flexBasis: "40%" }}
                 >
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
                     style={{
                       backgroundColor:
                         (transfer.to_account?.color || "#555") + "20",
@@ -154,7 +150,7 @@ export function TransfersList({ transfers }: TransfersListProps) {
                     })}
                   </p>
                   {transfer.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-37.5">
                       {transfer.description}
                     </p>
                   )}
@@ -179,7 +175,8 @@ export function TransfersList({ transfers }: TransfersListProps) {
                       <AlertDialogDescription>
                         Tindakan ini akan mengembalikan saldo transaksi ke kedua
                         dompet. Transfer senilai{" "}
-                        {formatCurrency(transfer.amount)} akan dihapus permanen.
+                        <FormattedCurrency amount={transfer.amount} /> akan
+                        dihapus permanen.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

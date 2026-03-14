@@ -1,14 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
-
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+import { FormattedCurrency } from "@/components/ui/formatted-currency";
 
 interface SummaryCardsProps {
   totalBalance: number;
@@ -31,7 +23,10 @@ export function SummaryCards({
           <Wallet className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatRupiah(totalBalance)}</div>
+          <FormattedCurrency
+            amount={totalBalance}
+            className="text-2xl font-bold"
+          />
           <p className="text-xs text-muted-foreground">Semua Dompet</p>
         </CardContent>
       </Card>
@@ -42,9 +37,12 @@ export function SummaryCards({
           <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-emerald-500">
-            +{formatRupiah(monthlyIncome)}
-          </div>
+          <FormattedCurrency
+            amount={monthlyIncome}
+            showSign
+            sign="+"
+            className="text-2xl font-bold text-emerald-500"
+          />
           <p className="text-xs text-muted-foreground">{currentMonth}</p>
         </CardContent>
       </Card>
@@ -55,9 +53,12 @@ export function SummaryCards({
           <ArrowDownCircle className="h-4 w-4 text-rose-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-rose-500">
-            -{formatRupiah(monthlyExpense)}
-          </div>
+          <FormattedCurrency
+            amount={monthlyExpense}
+            showSign
+            sign="-"
+            className="text-2xl font-bold text-rose-500"
+          />
           <p className="text-xs text-muted-foreground">{currentMonth}</p>
         </CardContent>
       </Card>
