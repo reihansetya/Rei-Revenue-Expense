@@ -37,6 +37,8 @@ export default async function DashboardPage() {
       {/* Summary Cards */}
       <SummaryCards
         totalBalance={data.totalBalance}
+        walletBalance={data.walletBalance}
+        investmentBalance={data.investmentBalance}
         monthlyIncome={data.monthlyIncome}
         monthlyExpense={data.monthlyExpense}
         currentMonth={data.currentMonth}

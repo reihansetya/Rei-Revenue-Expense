@@ -19,13 +19,19 @@ export async function getDashboardData(month?: string) {
   // 1. Get all accounts for total balance
   const { data: accounts } = await supabase
     .from("accounts")
-    .select("balance")
+    .select("balance, type")
     .eq("user_id", user.id);
 
   const totalBalance = (accounts || []).reduce(
     (sum, acc) => sum + Number(acc.balance),
     0
   );
+  const walletBalance = (accounts || [])
+    .filter((a) => a.type !== "investment")
+    .reduce((sum, acc) => sum + Number(acc.balance), 0);
+  const investmentBalance = (accounts || [])
+    .filter((a) => a.type === "investment")
+    .reduce((sum, acc) => sum + Number(acc.balance), 0);
 
   // 2. Get monthly transactions
   const { data: monthlyTransactions } = await supabase
@@ -141,6 +147,8 @@ export async function getDashboardData(month?: string) {
 
   return {
     totalBalance,
+    walletBalance,
+    investmentBalance,
     monthlyIncome,
     monthlyExpense,
     spendingByCategory,

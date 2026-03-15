@@ -10,6 +10,7 @@ import {
   CreditCard,
   Banknote,
   TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { deleteTransfer } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,24 @@ const accountIcons = {
   cash: Banknote,
   investment: TrendingUp,
 };
+
+function TransferTypeBadge({ type }: { type?: string }) {
+  if (!type || type === "regular") return null;
+  if (type === "investment") {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium">
+        <TrendingUp className="h-3 w-3" />
+        Beli Investasi
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 font-medium">
+      <TrendingDown className="h-3 w-3" />
+      Cairkan Investasi
+    </span>
+  );
+}
 
 
 export function TransfersList({ transfers }: TransfersListProps) {
@@ -154,6 +173,7 @@ export function TransfersList({ transfers }: TransfersListProps) {
                       {transfer.description}
                     </p>
                   )}
+                  <TransferTypeBadge type={transfer.transfer_type} />
                 </div>
 
                 {/* Delete Button */}

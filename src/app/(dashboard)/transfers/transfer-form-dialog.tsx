@@ -8,6 +8,8 @@ import {
   CreditCard,
   Banknote,
   TrendingUp,
+  TrendingDown,
+  Info,
 } from "lucide-react";
 import { createTransfer } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -196,6 +198,20 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Transfer Type Preview */}
+          {fromAccountId && toAccountId && (() => {
+            const isInvestBuy = fromAccount?.type !== "investment" && toAccount?.type === "investment";
+            const isInvestSell = fromAccount?.type === "investment" && toAccount?.type !== "investment";
+            if (!isInvestBuy && !isInvestSell) return null;
+            return (
+              <div className={`flex items-center gap-2 p-3 rounded-md text-sm ${isInvestBuy ? "bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300" : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"}`}>
+                {isInvestBuy ? <TrendingUp className="h-4 w-4 shrink-0" /> : <TrendingDown className="h-4 w-4 shrink-0" />}
+                <span className="font-medium">{isInvestBuy ? "Pembelian Investasi" : "Pencairan Investasi"}</span>
+                <Info className="h-3.5 w-3.5 opacity-60 ml-auto shrink-0" />
+              </div>
+            );
+          })()}
 
           {/* Amount */}
           <div className="space-y-2">

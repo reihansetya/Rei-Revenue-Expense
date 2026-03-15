@@ -11,6 +11,7 @@ import {
   Tags,
   Settings,
   ArrowRightLeft,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,6 +24,7 @@ const navigation = [
   { name: "Transaksi", href: "/transactions", icon: ReceiptText },
   { name: "Transfer", href: "/transfers", icon: ArrowRightLeft },
   { name: "Dompet", href: "/accounts", icon: CreditCard },
+  { name: "Investasi", href: "/investments", icon: TrendingUp },
   { name: "Kategori", href: "/categories", icon: Tags },
   { name: "Pengaturan", href: "/settings", icon: Settings },
 ];

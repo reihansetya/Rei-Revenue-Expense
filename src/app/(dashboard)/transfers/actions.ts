@@ -101,18 +101,28 @@ export async function createTransfer(formData: FormData): Promise<{
     return { error: "Tanggal harus diisi" };
   }
 
-  // Cek saldo akun sumber untuk memvalidasi limit (Hanya milik user login yg dicari demi security)
-  const { data: fromAccount } = await supabase
+  // Cek saldo akun sumber dan ambil tipe kedua akun
+  const { data: accounts } = await supabase
     .from("accounts")
-    .select("balance, name")
-    .eq("id", from_account_id)
-    .eq("user_id", user.id)
-    .single();
+    .select("id, balance, name, type")
+    .in("id", [from_account_id, to_account_id])
+    .eq("user_id", user.id);
+
+  const fromAccount = accounts?.find((a) => a.id === from_account_id);
+  const toAccount = accounts?.find((a) => a.id === to_account_id);
 
   if (fromAccount && fromAccount.balance < amount) {
     return {
       error: `Saldo dompet ${fromAccount.name} tidak mencukupi. Saldo: Rp ${fromAccount.balance.toLocaleString("id-ID")}`,
     };
+  }
+
+  // Auto-detect transfer type berdasarkan tipe akun
+  let transfer_type = "regular";
+  if (fromAccount?.type !== "investment" && toAccount?.type === "investment") {
+    transfer_type = "investment"; // Pembelian investasi
+  } else if (fromAccount?.type === "investment" && toAccount?.type !== "investment") {
+    transfer_type = "divestment"; // Pencairan investasi
   }
 
   // Insert transfer (trigger akan otomatis update balance)
@@ -124,6 +134,7 @@ export async function createTransfer(formData: FormData): Promise<{
     date,
     description: description || null,
     source: "web",
+    transfer_type,
   });
 
   if (error) {

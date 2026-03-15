@@ -2,6 +2,7 @@ export type AccountType = 'bank' | 'ewallet' | 'cash' | 'investment';
 export type CategoryType = 'income' | 'expense';
 export type TransactionType = 'income' | 'expense' | 'transfer';
 export type TransactionSource = 'web' | 'telegram';
+export type TransferType = 'regular' | 'investment' | 'divestment';
 
 export interface Profile {
   id: string;
@@ -64,6 +65,7 @@ export interface Transfer {
   description: string | null;
   date: string;
   source: string;
+  transfer_type: TransferType;
   created_at: string;
   // Relations (joined dari Supabase)
   from_account?: {
@@ -80,6 +82,39 @@ export interface Transfer {
     icon: string;
     color: string;
   };
+}
+
+export interface InvestmentBalanceLog {
+  id: string;
+  user_id: string;
+  account_id: string;
+  old_balance: number;
+  new_balance: number;
+  gain_loss: number;
+  gain_loss_percentage: number;
+  notes: string | null;
+  created_at: string;
+  account?: {
+    id: string;
+    name: string;
+    icon: string;
+    color: string;
+  };
+}
+
+export interface BalanceSummary {
+  total: number;
+  wallet: number;
+  investment: number;
+}
+
+export interface InvestmentGainLoss {
+  account_id: string;
+  account_name: string;
+  current_balance: number;
+  total_invested: number;
+  total_gain_loss: number;
+  gain_loss_percentage: number;
 }
 
 // Type untuk form input
