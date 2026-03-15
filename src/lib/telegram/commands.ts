@@ -20,7 +20,7 @@ const pendingTransactions = new Map<string, any>();
 // Helper: get user by telegram_id
 async function getUserByTelegramId(telegramId: number) {
   console.log(`🔍 Mencari user dengan Telegram ID: ${telegramId}`);
-  
+
   // 1. Ambil profile
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -137,9 +137,12 @@ export async function handleExpense(ctx: Context) {
   const parts = text.split(" ").slice(1);
 
   if (parts.length < 2) {
-    await ctx.reply("❌ Format salah.\n\nContoh: `/expense 50rb makan [catatan]`", {
-      parse_mode: "Markdown",
-    });
+    await ctx.reply(
+      "❌ Format salah.\n\nContoh: `/expense 50rb makan [catatan]`",
+      {
+        parse_mode: "Markdown",
+      },
+    );
     return;
   }
 
@@ -168,33 +171,35 @@ export async function handleExpense(ctx: Context) {
 
   // Jika cuma ada 1 akun, langsung simpan (opsional, tapi lebih cepat)
   // Tapi untuk rikues user, kita tampilkan tombol meskipun cuma 1 agar konsisten
-  
+
   const requestId = Math.random().toString(36).slice(2, 10); // 8 Karakter random
   pendingTransactions.set(requestId, {
     userId: profile.user_id,
     type: "expense",
     amount,
     categoryId: category?.id || null,
-    categoryName: category ? category.icon + " " + category.name : "Tanpa Kategori",
+    categoryName: category
+      ? category.icon + " " + category.name
+      : "Tanpa Kategori",
     description,
     today: new Date().toISOString().split("T")[0],
   });
 
   // Tampilkan tombol pilihan akun (prefix "a:" agar hemat space)
-  const buttons = accounts.map((acc: any) => 
-    Markup.button.callback(acc.name, `a:${requestId}:${acc.id}`)
+  const buttons = accounts.map((acc: any) =>
+    Markup.button.callback(acc.name, `a:${requestId}:${acc.id}`),
   );
 
   await ctx.reply(
     `💸 *Pilih Akun untuk Pengeluaran*\n\n` +
-    `💰 Jumlah: *${formatRupiah(amount)}*\n` +
-    `📂 Kategori: ${category ? category.icon + " " + category.name : "Tidak ditemukan"}\n` +
-    `📝 Catatan: ${description || "-"}\n\n` +
-    `Klik tombol di bawah untuk konfirmasi:`,
+      `💰 Jumlah: *${formatRupiah(amount)}*\n` +
+      `📂 Kategori: ${category ? category.icon + " " + category.name : "Tidak ditemukan"}\n` +
+      `📝 Catatan: ${description || "-"}\n\n` +
+      `Klik tombol di bawah untuk konfirmasi:`,
     {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard(buttons, { columns: 2 }),
-    }
+    },
   );
 }
 
@@ -213,9 +218,12 @@ export async function handleIncome(ctx: Context) {
   const parts = text.split(" ").slice(1);
 
   if (parts.length < 2) {
-    await ctx.reply("❌ Format salah.\n\nContoh: `/income 5jt gaji [catatan]`", {
-      parse_mode: "Markdown",
-    });
+    await ctx.reply(
+      "❌ Format salah.\n\nContoh: `/income 5jt gaji [catatan]`",
+      {
+        parse_mode: "Markdown",
+      },
+    );
     return;
   }
 
@@ -248,25 +256,27 @@ export async function handleIncome(ctx: Context) {
     type: "income",
     amount,
     categoryId: category?.id || null,
-    categoryName: category ? category.icon + " " + category.name : "Tanpa Kategori",
+    categoryName: category
+      ? category.icon + " " + category.name
+      : "Tanpa Kategori",
     description,
     today: new Date().toISOString().split("T")[0],
   });
 
-  const buttons = accounts.map((acc: any) => 
-    Markup.button.callback(acc.name, `a:${requestId}:${acc.id}`)
+  const buttons = accounts.map((acc: any) =>
+    Markup.button.callback(acc.name, `a:${requestId}:${acc.id}`),
   );
 
   await ctx.reply(
     `💰 *Pilih Akun untuk Pemasukan*\n\n` +
-    `💵 Jumlah: *${formatRupiah(amount)}*\n` +
-    `📂 Kategori: ${category ? category.icon + " " + category.name : "Tidak ditemukan"}\n` +
-    `📝 Catatan: ${description || "-"}\n\n` +
-    `Klik tombol di bawah untuk konfirmasi:`,
+      `💵 Jumlah: *${formatRupiah(amount)}*\n` +
+      `📂 Kategori: ${category ? category.icon + " " + category.name : "Tidak ditemukan"}\n` +
+      `📝 Catatan: ${description || "-"}\n\n` +
+      `Klik tombol di bawah untuk konfirmasi:`,
     {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard(buttons, { columns: 2 }),
-    }
+    },
   );
 }
 
@@ -314,12 +324,12 @@ export async function handleCallback(ctx: Context) {
   await ctx.answerCbQuery("✅ Berhasil disimpan!");
   await ctx.editMessageText(
     `✅ *${data.type === "expense" ? "Pengeluaran" : "Pemasukan"} Tercatat!*\n\n` +
-    `💵 Jumlah: *${formatRupiah(data.amount)}*\n` +
-    `📂 Kategori: ${data.categoryName}\n` +
-    `🏦 Akun: ${account?.name || "Unkown"}\n` +
-    `📝 Catatan: ${data.description || "-"}\n` +
-    `📅 Tanggal: ${data.today}`,
-    { parse_mode: "Markdown" }
+      `💵 Jumlah: *${formatRupiah(data.amount)}*\n` +
+      `📂 Kategori: ${data.categoryName}\n` +
+      `🏦 Akun: ${account?.name || "Unkown"}\n` +
+      `📝 Catatan: ${data.description || "-"}\n` +
+      `📅 Tanggal: ${data.today}`,
+    { parse_mode: "Markdown" },
   );
 }
 
@@ -341,7 +351,9 @@ export async function handleBalance(ctx: Context) {
   }
 
   const walletAccounts = accounts.filter((a: any) => a.type !== "investment");
-  const investmentAccounts = accounts.filter((a: any) => a.type === "investment");
+  const investmentAccounts = accounts.filter(
+    (a: any) => a.type === "investment",
+  );
 
   const typeEmoji: Record<string, string> = {
     bank: "🏦",
@@ -351,15 +363,27 @@ export async function handleBalance(ctx: Context) {
   };
 
   const walletLines = walletAccounts
-    .map((a: any) => `${typeEmoji[a.type] || "💰"} ${a.name}: *${formatRupiah(Number(a.balance))}*`)
+    .map(
+      (a: any) =>
+        `${typeEmoji[a.type] || "💰"} ${a.name}: *${formatRupiah(Number(a.balance))}*`,
+    )
     .join("\n");
 
   const investmentLines = investmentAccounts
-    .map((a: any) => `${typeEmoji[a.type] || "📈"} ${a.name}: *${formatRupiah(Number(a.balance))}*`)
+    .map(
+      (a: any) =>
+        `${typeEmoji[a.type] || "📈"} ${a.name}: *${formatRupiah(Number(a.balance))}*`,
+    )
     .join("\n");
 
-  const walletTotal = walletAccounts.reduce((sum: number, a: any) => sum + Number(a.balance), 0);
-  const investmentTotal = investmentAccounts.reduce((sum: number, a: any) => sum + Number(a.balance), 0);
+  const walletTotal = walletAccounts.reduce(
+    (sum: number, a: any) => sum + Number(a.balance),
+    0,
+  );
+  const investmentTotal = investmentAccounts.reduce(
+    (sum: number, a: any) => sum + Number(a.balance),
+    0,
+  );
 
   let message = `💰 *Saldo Akun*\n\n`;
 
@@ -405,7 +429,10 @@ export async function handleCategories(ctx: Context) {
 
   await ctx.reply(
     `📂 *Daftar Kategori*\n\n` +
+      `─────────────────\n` +
       `💸 *Pengeluaran*\n${expenseCats || "-\n"}\n` +
+      `─────────────────\n` +
+      `─────────────────\n` +
       `💰 *Pemasukan*\n${incomeCats || "-"}\n\n` +
       `─────────────────\n` +
       `💡 *Tips:*\n` +
