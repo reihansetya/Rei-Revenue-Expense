@@ -102,7 +102,7 @@ export function InvestmentsList({
           <CardContent>
             <FormattedCurrency
               amount={totalBalance}
-              className="text-2xl font-bold text-purple-600"
+              className="text-2xl font-bold text-purple-600 block truncate"
             />
             <p className="text-xs text-muted-foreground">
               {initialAccounts.length} akun investasi
@@ -123,7 +123,7 @@ export function InvestmentsList({
           </CardHeader>
           <CardContent>
             <p
-              className={`text-2xl font-bold ${isPositive ? "text-emerald-600" : "text-red-600"}`}
+              className={`text-2xl font-bold truncate ${isPositive ? "text-emerald-600" : "text-red-600"}`}
             >
               {isPositive ? "+" : ""}
               {formatCurrency(totalGainLoss)}
@@ -156,7 +156,7 @@ export function InvestmentsList({
             return (
               <div
                 key={item.account_id}
-                className="flex items-center justify-between p-3 rounded-lg border gap-3"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
@@ -168,17 +168,17 @@ export function InvestmentsList({
                   >
                     <TrendingUp className="h-5 w-5" />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium truncate">{item.account_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       Saldo: {formatCurrency(item.current_balance)}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:shrink-0 w-full sm:w-auto border-t sm:border-0 pt-2 sm:pt-0">
                   <div className="text-right">
                     <p
-                      className={`text-sm font-bold ${pos ? "text-emerald-600" : "text-red-600"}`}
+                      className={`text-sm font-bold truncate ${pos ? "text-emerald-600" : "text-red-600"}`}
                     >
                       {pos ? "+" : ""}
                       {formatCurrency(item.total_gain_loss)}
@@ -218,9 +218,9 @@ export function InvestmentsList({
               return (
                 <div
                   key={log.id}
-                  className="flex items-center justify-between py-2 border-b last:border-0 gap-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b last:border-0 gap-2"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">
                       {log.account?.name}
                     </p>
@@ -229,14 +229,14 @@ export function InvestmentsList({
                       {formatCurrency(log.new_balance)}
                     </p>
                     {log.notes && (
-                      <p className="text-xs text-muted-foreground italic">
+                      <p className="text-xs text-muted-foreground italic truncate">
                         {log.notes}
                       </p>
                     )}
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end sm:text-right gap-3 w-full sm:w-auto">
                     <p
-                      className={`text-sm font-bold ${pos ? "text-emerald-600" : "text-red-600"}`}
+                      className={`text-sm font-bold truncate ${pos ? "text-emerald-600" : "text-red-600"}`}
                     >
                       {pos ? "+" : ""}
                       {formatCurrency(log.gain_loss)}

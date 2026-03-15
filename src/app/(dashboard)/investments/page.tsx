@@ -20,10 +20,10 @@ export default async function InvestmentsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Investasi</h1>
-          <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight truncate">Investasi</h1>
+          <p className="text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">
             Kelola dan pantau portofolio investasi Anda
           </p>
         </div>
