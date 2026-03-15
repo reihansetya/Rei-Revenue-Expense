@@ -73,6 +73,12 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
     setIsLoading(true);
     setError(null);
 
+    // Clean up formatted amount before submit (remove dots)
+    const rawAmount = formData.get("amount") as string;
+    if (rawAmount) {
+      formData.set("amount", rawAmount.replace(/\./g, ""));
+    }
+
     const result = await createTransfer(formData);
 
     if (result.error) {

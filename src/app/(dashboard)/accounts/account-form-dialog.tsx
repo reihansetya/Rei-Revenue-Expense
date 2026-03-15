@@ -51,6 +51,13 @@ export function AccountFormDialog({
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
+
+    // Clean up formatted balance (remove dots)
+    const rawBalance = formData.get("balance") as string;
+    if (rawBalance) {
+      formData.set("balance", rawBalance.replace(/\./g, ""));
+    }
+
     formData.set("color", selectedColor);
     await onSubmit(formData);
     setLoading(false);

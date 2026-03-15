@@ -25,9 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  FormattedCurrency,
-} from "@/components/ui/formatted-currency";
+import { FormattedCurrency } from "@/components/ui/formatted-currency";
 import type { Transfer } from "@/types";
 
 interface TransfersListProps {
@@ -59,7 +57,6 @@ function TransferTypeBadge({ type }: { type?: string }) {
     </span>
   );
 }
-
 
 export function TransfersList({ transfers }: TransfersListProps) {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -203,7 +200,7 @@ export function TransfersList({ transfers }: TransfersListProps) {
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => handleDelete(transfer.id)}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-red-600 hover:bg-red-700 text-white"
                         disabled={isDeleting === transfer.id}
                       >
                         {isDeleting === transfer.id ? "Menghapus..." : "Hapus"}
