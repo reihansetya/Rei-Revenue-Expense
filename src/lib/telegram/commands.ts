@@ -434,10 +434,10 @@ export async function handleCategories(ctx: Context) {
   await ctx.reply(
     `📂 *Daftar Kategori*\n\n` +
       `─────────────────\n` +
-      `💸 *Pengeluaran*\n${expenseCats || "-\n"}\n` +
+      `💸 *Pengeluaran*\n\n${expenseCats || "-\n"}\n` +
       `─────────────────\n` +
       `─────────────────\n` +
-      `💰 *Pemasukan*\n${incomeCats || "-"}\n\n` +
+      `💰 *Pemasukan*\n\n${incomeCats || "-"}\n\n` +
       `─────────────────\n` +
       `💡 *Tips:*\n` +
       `Gunakan nama kategori saat input transaksi.\n\n` +
