@@ -63,6 +63,7 @@ export async function handleStart(ctx: Context) {
       `/expense <jumlah> <kategori> [catatan]\n` +
       `/income <jumlah> <kategori> [catatan]\n` +
       `/balance - Cek saldo\n` +
+      `/categories - Daftar kategori\n` +
       `/summary - Ringkasan bulan ini\n` +
       `/help - Bantuan`,
     { parse_mode: "Markdown" },
@@ -87,6 +88,7 @@ export async function handleHelp(ctx: Context) {
       `• \`50000\` = Rp 50.000\n\n` +
       `*Lainnya:*\n` +
       `/balance - Lihat saldo semua akun\n` +
+      `/categories - Lihat daftar kategori tersedia\n` +
       `/summary - Ringkasan bulan ini\n` +
       `/link - Hubungkan akun Telegram`,
     { parse_mode: "Markdown" },
@@ -338,10 +340,8 @@ export async function handleBalance(ctx: Context) {
     return;
   }
 
-  const total = accounts.reduce(
-    (sum: number, a: any) => sum + Number(a.balance),
-    0,
-  );
+  const walletAccounts = accounts.filter((a: any) => a.type !== "investment");
+  const investmentAccounts = accounts.filter((a: any) => a.type === "investment");
 
   const typeEmoji: Record<string, string> = {
     bank: "🏦",
@@ -350,18 +350,69 @@ export async function handleBalance(ctx: Context) {
     investment: "📈",
   };
 
-  const lines = accounts
-    .map(
-      (a: any) =>
-        `${typeEmoji[a.type] || "💰"} ${a.name}: *${formatRupiah(Number(a.balance))}*`,
-    )
+  const walletLines = walletAccounts
+    .map((a: any) => `${typeEmoji[a.type] || "💰"} ${a.name}: *${formatRupiah(Number(a.balance))}*`)
+    .join("\n");
+
+  const investmentLines = investmentAccounts
+    .map((a: any) => `${typeEmoji[a.type] || "📈"} ${a.name}: *${formatRupiah(Number(a.balance))}*`)
+    .join("\n");
+
+  const walletTotal = walletAccounts.reduce((sum: number, a: any) => sum + Number(a.balance), 0);
+  const investmentTotal = investmentAccounts.reduce((sum: number, a: any) => sum + Number(a.balance), 0);
+
+  let message = `💰 *Saldo Akun*\n\n`;
+
+  if (walletAccounts.length > 0) {
+    message += `👛 *Dompet*\n${walletLines}\n└─ Total Dompet: *${formatRupiah(walletTotal)}*\n\n`;
+  }
+
+  if (investmentAccounts.length > 0) {
+    message += `📈 *Investasi*\n${investmentLines}\n└─ Total Investasi: *${formatRupiah(investmentTotal)}*\n\n`;
+  }
+
+  message += `═══════════════════\n📊 Total Keseluruhan: *${formatRupiah(walletTotal + investmentTotal)}*`;
+
+  await ctx.reply(message, { parse_mode: "Markdown" });
+}
+
+// /categories
+export async function handleCategories(ctx: Context) {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const profile = await getUserByTelegramId(telegramId);
+  if (!profile) {
+    await ctx.reply("❌ Akun belum terhubung. Gunakan /link terlebih dahulu.");
+    return;
+  }
+
+  const categories = profile.categories as any[];
+  if (categories.length === 0) {
+    await ctx.reply("❌ Belum ada kategori terdaftar.");
+    return;
+  }
+
+  const expenseCats = categories
+    .filter((c) => c.type === "expense")
+    .map((c) => `${c.icon || "💸"} ${c.name}`)
+    .join("\n");
+
+  const incomeCats = categories
+    .filter((c) => c.type === "income")
+    .map((c) => `${c.icon || "💰"} ${c.name}`)
     .join("\n");
 
   await ctx.reply(
-    `💰 *Saldo Akun*\n\n` +
-      `${lines}\n` +
+    `📂 *Daftar Kategori*\n\n` +
+      `💸 *Pengeluaran*\n${expenseCats || "-\n"}\n` +
+      `💰 *Pemasukan*\n${incomeCats || "-"}\n\n` +
       `─────────────────\n` +
-      `📊 Total: *${formatRupiah(total)}*`,
+      `💡 *Tips:*\n` +
+      `Gunakan nama kategori saat input transaksi.\n\n` +
+      `Contoh:\n` +
+      `• \`/expense 50rb makan\`\n` +
+      `• \`/income 5jt gaji\``,
     { parse_mode: "Markdown" },
   );
 }

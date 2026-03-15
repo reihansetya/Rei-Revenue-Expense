@@ -7,6 +7,7 @@ import {
   handleIncome,
   handleBalance,
   handleSummary,
+  handleCategories,
   handleCallback,
 } from "./commands";
 import { Context } from "telegraf";
@@ -36,6 +37,7 @@ bot.command("expense", handleExpense);
 bot.command("income", handleIncome);
 bot.command("balance", handleBalance);
 bot.command("summary", handleSummary);
+bot.command("categories", handleCategories);
 
 bot.on("callback_query", handleCallback);
 
@@ -51,6 +53,7 @@ export async function setupBotCommands() {
       description: "Catat pemasukan (format: /income 5jt gaji)",
     },
     { command: "balance", description: "Cek saldo semua dompet" },
+    { command: "categories", description: "Lihat daftar kategori tersedia" },
     { command: "summary", description: "Ringkasan transaksi bulan ini" },
     { command: "link", description: "Hubungkan akun Telegram" },
     { command: "help", description: "Bantuan penggunaan" },
