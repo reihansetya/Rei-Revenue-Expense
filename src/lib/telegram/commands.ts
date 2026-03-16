@@ -117,12 +117,12 @@ export async function handleLink(ctx: Context) {
   const linkToken = `${token}_${telegramId}`;
 
   await ctx.reply(
-    `🔗 *Link Akun Telegram*\n\n` +
+    `🔗 <b>Link Akun Telegram</b>\n\n` +
       `Klik link berikut untuk menghubungkan akun:\n` +
       `${APP_URL}/settings/link?token=${linkToken}\n\n` +
-      `⏰ Link berlaku *10 menit*\n` +
+      `⏰ Link berlaku <b>10 menit</b>\n` +
       `❗ Jangan bagikan link ini ke siapapun`,
-    { parse_mode: "Markdown" },
+    { parse_mode: "HTML" },
   );
 }
 
