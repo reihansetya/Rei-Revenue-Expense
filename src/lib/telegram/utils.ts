@@ -12,8 +12,11 @@ export function parseAmount(raw: string): number | null {
   const k = cleaned.match(/^([\d.,]+)\s*k$/);
   if (k) return parseFloat(k[1].replace(",", ".")) * 1_000;
 
-  const plain = parseFloat(cleaned.replace(/\./g, "").replace(",", "."));
-  if (!isNaN(plain)) return plain;
+  // Hanya parse jika murni angka (opsional dengan titik/koma)
+  if (/^[\d.,]+$/.test(cleaned)) {
+    const plain = parseFloat(cleaned.replace(/\./g, "").replace(",", "."));
+    if (!isNaN(plain)) return plain;
+  }
 
   return null;
 }

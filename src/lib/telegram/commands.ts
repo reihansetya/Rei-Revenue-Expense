@@ -21,6 +21,16 @@ const APP_URL =
 // Simpan data transaksi sementara sebelum user pilih akun
 const pendingTransactions = new Map<string, any>();
 
+// Simpan state user saat menggunakan Wizard (langkah-demi-langkah)
+const userSessions = new Map<string, { 
+  type: "expense" | "income", 
+  step: "amount" | "category" | "description",
+  amount?: number,
+  categoryId?: string,
+  categoryName?: string,
+  description?: string
+}>();
+
 // Helper: get user by telegram_id
 async function getUserByTelegramId(telegramId: number) {
   console.log(`🔍 Mencari user dengan Telegram ID: ${telegramId}`);
@@ -53,6 +63,25 @@ async function getUserByTelegramId(telegramId: number) {
     accounts: accountsRes.data || [],
     categories: categoriesRes.data || [],
   };
+}
+
+// Helper: Mencari kategori dengan fallback ke "Lainnya"
+function findCategory(categories: any[], type: string, query: string) {
+  const normalizedQuery = query.toLowerCase();
+  
+  // 1. Cari yang mirip
+  let match = categories.find(
+    (c: any) => c.type === type && c.name.toLowerCase().includes(normalizedQuery)
+  );
+  
+  // 2. Fallback ke "Lainnya" atau "Other"
+  if (!match) {
+    match = categories.find(
+      (c: any) => c.type === type && (c.name.toLowerCase() === "lainnya" || c.name.toLowerCase() === "other")
+    );
+  }
+  
+  return match;
 }
 
 // /start
@@ -140,71 +169,33 @@ export async function handleExpense(ctx: Context) {
   const text = ctx.message && "text" in ctx.message ? ctx.message.text : "";
   const parts = text.split(" ").slice(1);
 
+  // LOGIKA WIZARD (Jika tanpa argumen)
+  if (parts.length === 0) {
+    userSessions.set(telegramId.toString(), { type: "expense", step: "amount" });
+    await ctx.reply("💸 *Catat Pengeluaran Baru*\n\nBerapa nominalnya? (Contoh: `50k`, `100000`, `2.5jt`)", { parse_mode: "Markdown" });
+    return;
+  }
+
+  // LOGIKA QUICK INPUT (Jika ada argumen)
   if (parts.length < 2) {
     await ctx.reply(
-      "❌ Format salah.\n\nContoh: `/expense 50rb makan [catatan]`",
-      {
-        parse_mode: "Markdown",
-      },
+      "❌ Format salah.\n\nContoh: `/expense 50rb makan [catatan]`\nAtau cukup ketik `/expense` untuk panduan step-by-step.",
+      { parse_mode: "Markdown" }
     );
     return;
   }
 
   const amount = parseAmount(parts[0]);
   if (!amount) {
-    await ctx.reply("❌ Jumlah tidak valid. Contoh: `50rb`, `5jt`", {
-      parse_mode: "Markdown",
-    });
+    await ctx.reply("❌ Jumlah tidak valid. Contoh: `50rb`, `5jt`", { parse_mode: "Markdown" });
     return;
   }
 
-  const categoryName = parts[1].toLowerCase();
+  const categoryName = parts[1];
   const description = parts.slice(2).join(" ") || null;
+  const category = findCategory(profile.categories, "expense", categoryName);
 
-  const categories = profile.categories as any[];
-  const category = categories.find(
-    (c: any) =>
-      c.type === "expense" && c.name.toLowerCase().includes(categoryName),
-  );
-
-  const accounts = profile.accounts as any[];
-  if (accounts.length === 0) {
-    await ctx.reply("❌ Kamu belum punya akun. Tambahkan dulu di aplikasi.");
-    return;
-  }
-
-  // Jika cuma ada 1 akun, langsung simpan (opsional, tapi lebih cepat)
-  // Tapi untuk rikues user, kita tampilkan tombol meskipun cuma 1 agar konsisten
-
-  const requestId = Math.random().toString(36).slice(2, 10); // 8 Karakter random
-  pendingTransactions.set(requestId, {
-    userId: profile.user_id,
-    type: "expense",
-    amount,
-    categoryId: category?.id || null,
-    categoryName: category
-      ? category.icon + " " + category.name
-      : "Tanpa Kategori",
-    description,
-    today: new Date().toISOString().split("T")[0],
-  });
-
-  // Tampilkan tombol pilihan akun (prefix "a:" agar hemat space)
-  const buttons = accounts.map((acc: any) =>
-    Markup.button.callback(acc.name, `a:${requestId}:${acc.id}`),
-  );
-
-  await ctx.reply(
-    `💸 *Pilih Akun untuk Pengeluaran*\n\n` +
-      `💰 Jumlah: *${formatRupiah(amount)}*\n` +
-      `📂 Kategori: ${category ? category.icon + " " + category.name : "Tidak ditemukan"}\n` +
-      `📝 Catatan: ${description || "-"}\n\n` +
-      `Klik tombol di bawah untuk konfirmasi:`,
-    {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard(buttons, { columns: 2 }),
-    },
-  );
+  await showAccountSelection(ctx, profile, "expense", amount, category, description);
 }
 
 // /income
@@ -221,33 +212,37 @@ export async function handleIncome(ctx: Context) {
   const text = ctx.message && "text" in ctx.message ? ctx.message.text : "";
   const parts = text.split(" ").slice(1);
 
+  // LOGIKA WIZARD
+  if (parts.length === 0) {
+    userSessions.set(telegramId.toString(), { type: "income", step: "amount" });
+    await ctx.reply("💰 *Catat Pemasukan Baru*\n\nBerapa nominalnya? (Contoh: `5jt`, `500k`)", { parse_mode: "Markdown" });
+    return;
+  }
+
+  // LOGIKA QUICK INPUT
   if (parts.length < 2) {
     await ctx.reply(
-      "❌ Format salah.\n\nContoh: `/income 5jt gaji [catatan]`",
-      {
-        parse_mode: "Markdown",
-      },
+      "❌ Format salah.\n\nContoh: `/income 5jt gaji [catatan]`\nAtau cukup ketik `/income` untuk panduan step-by-step.",
+      { parse_mode: "Markdown" }
     );
     return;
   }
 
   const amount = parseAmount(parts[0]);
   if (!amount) {
-    await ctx.reply("❌ Jumlah tidak valid. Contoh: `50rb`, `1jt`", {
-      parse_mode: "Markdown",
-    });
+    await ctx.reply("❌ Jumlah tidak valid. Contoh: `50rb`, `1jt`", { parse_mode: "Markdown" });
     return;
   }
 
-  const categoryName = parts[1].toLowerCase();
+  const categoryName = parts[1];
   const description = parts.slice(2).join(" ") || null;
+  const category = findCategory(profile.categories, "income", categoryName);
 
-  const categories = profile.categories as any[];
-  const category = categories.find(
-    (c: any) =>
-      c.type === "income" && c.name.toLowerCase().includes(categoryName),
-  );
+  await showAccountSelection(ctx, profile, "income", amount, category, description);
+}
 
+// Helper: Tampilkan pilihan akun (Tahap Akhir)
+async function showAccountSelection(ctx: Context, profile: any, type: string, amount: number, category: any, description: any) {
   const accounts = profile.accounts as any[];
   if (accounts.length === 0) {
     await ctx.reply("❌ Kamu belum punya akun. Tambahkan dulu di aplikasi.");
@@ -257,22 +252,23 @@ export async function handleIncome(ctx: Context) {
   const requestId = Math.random().toString(36).slice(2, 10);
   pendingTransactions.set(requestId, {
     userId: profile.user_id,
-    type: "income",
+    type,
     amount,
     categoryId: category?.id || null,
-    categoryName: category
-      ? category.icon + " " + category.name
-      : "Tanpa Kategori",
+    categoryName: category ? category.icon + " " + category.name : "Tanpa Kategori",
     description,
     today: new Date().toISOString().split("T")[0],
   });
 
   const buttons = accounts.map((acc: any) =>
-    Markup.button.callback(acc.name, `a:${requestId}:${acc.id}`),
+    Markup.button.callback(acc.name, `a:${requestId}:${acc.id}`)
   );
 
+  const emoji = type === "expense" ? "💸" : "💰";
+  const label = type === "expense" ? "Pengeluaran" : "Pemasukan";
+
   await ctx.reply(
-    `💰 *Pilih Akun untuk Pemasukan*\n\n` +
+    `${emoji} *Pilih Akun untuk ${label}*\n\n` +
       `💵 Jumlah: *${formatRupiah(amount)}*\n` +
       `📂 Kategori: ${category ? category.icon + " " + category.name : "Tidak ditemukan"}\n` +
       `📝 Catatan: ${description || "-"}\n\n` +
@@ -280,17 +276,109 @@ export async function handleIncome(ctx: Context) {
     {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard(buttons, { columns: 2 }),
-    },
+    }
   );
 }
 
-// Handler saat tombol akun diklik
+// Handler untuk pesan teks biasa (Menangkap input Wizard)
+export async function handleTextMessage(ctx: Context) {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const session = userSessions.get(telegramId.toString());
+  if (!session) return; // Bukan sedang dalam session wizard
+
+  const text = ctx.message && "text" in ctx.message ? ctx.message.text : "";
+
+  // Tahap 1: Input Nominal
+  if (session.step === "amount") {
+    const parts = text.split(" ");
+    const amount = parseAmount(parts[0]);
+
+    if (!amount) {
+      await ctx.reply("❌ Jumlah tidak valid. Harap masukkan angka atau format seperti `50k`, `2jt`.");
+      return;
+    }
+
+    // Ambil profile untuk data kategori/akun
+    const profile = await getUserByTelegramId(telegramId);
+    if (!profile) return;
+
+    // JIKA USER INPUT GANDA (Contoh: "50k makan" atau "50k makan siomay")
+    if (parts.length > 1) {
+      const categoryName = parts[1];
+      const description = parts.slice(2).join(" ") || null;
+      const category = findCategory(profile.categories, session.type, categoryName);
+
+      userSessions.delete(telegramId.toString()); // Hapus session wizard
+      await showAccountSelection(ctx, profile, session.type, amount, category, description);
+      return;
+    }
+
+    // JIKA HANYA INPUT NOMINAL (Lanjut Wizard Normal)
+    session.amount = amount;
+    session.step = "category";
+
+    const categories = (profile.categories as any[]).filter(c => c.type === session.type);
+
+    if (categories.length === 0) {
+       session.step = "description";
+       await ctx.reply("📂 Belum ada kategori. Langsung tulis catatan/deskripsi (atau ketik 'skip'):");
+       return;
+    }
+
+    // Tampilkan pilihan kategori dengan tombol (prefix "c:" untuk category)
+    const buttons = categories.map(c => 
+      Markup.button.callback(`${c.icon || ""} ${c.name}`, `c:${c.id}:${c.icon + " " + c.name}`)
+    );
+
+    await ctx.reply(`✅ Nominal: *${formatRupiah(amount)}*\n\nSekarang pilih kategori:`, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons, { columns: 2 })
+    });
+    return;
+  }
+
+  // Tahap 2: Input Deskripsi (Tahap kategori dihandle oleh handleCallback)
+  if (session.step === "description") {
+    const description = text.toLowerCase() === "skip" ? null : text;
+    
+    // Selesai Wizard -> Lanjut ke pilih akun
+    const profile = await getUserByTelegramId(telegramId);
+    if (!profile) return;
+
+    const category = session.categoryId ? { id: session.categoryId, name: session.categoryName?.split(" ").slice(1).join(" "), icon: session.categoryName?.split(" ")[0] } : null;
+
+    userSessions.delete(telegramId.toString()); // Bersihkan session
+    await showAccountSelection(ctx, profile, session.type, session.amount!, category, description);
+  }
+}
+
+// Handler saat tombol diklik
 export async function handleCallback(ctx: Context) {
   const cbData = (ctx.callbackQuery as any)?.data;
-  if (!cbData || !cbData.startsWith("a:")) return;
+  if (!cbData) return;
 
-  const [, requestId, accountId] = cbData.split(":");
-  const data = pendingTransactions.get(requestId);
+  const telegramId = ctx.from?.id;
+
+  // CASE 1: Pilihan Kategori (Wizard)
+  if (cbData.startsWith("c:")) {
+    const session = userSessions.get(telegramId?.toString() || "");
+    if (!session) return;
+
+    const [, categoryId, categoryName] = cbData.split(":");
+    session.categoryId = categoryId;
+    session.categoryName = categoryName;
+    session.step = "description";
+
+    await ctx.editMessageText(`📂 Kategori: *${categoryName}*\n\nSekarang tulis catatan/deskripsi (atau ketik \`skip\`)`, { parse_mode: "Markdown" });
+    return;
+  }
+
+  // CASE 2: Pilihan Akun (Final)
+  if (cbData.startsWith("a:")) {
+    const [, requestId, accountId] = cbData.split(":");
+    const data = pendingTransactions.get(requestId);
 
   if (!data) {
     await ctx.answerCbQuery("❌ Sesi berakhir atau data tidak ditemukan.");
@@ -326,15 +414,16 @@ export async function handleCallback(ctx: Context) {
 
   // Update pesan agar tidak bisa diklik lagi (ganti dengan status sukses)
   await ctx.answerCbQuery("✅ Berhasil disimpan!");
-  await ctx.editMessageText(
-    `✅ *${data.type === "expense" ? "Pengeluaran" : "Pemasukan"} Tercatat!*\n\n` +
-      `💵 Jumlah: *${formatRupiah(data.amount)}*\n` +
-      `📂 Kategori: ${data.categoryName}\n` +
-      `🏦 Akun: ${account?.name || "Unkown"}\n` +
-      `📝 Catatan: ${data.description || "-"}\n` +
-      `📅 Tanggal: ${data.today}`,
-    { parse_mode: "Markdown" },
-  );
+    await ctx.editMessageText(
+      `✅ *${data.type === "expense" ? "Pengeluaran" : "Pemasukan"} Tercatat!*\n\n` +
+        `💵 Jumlah: *${formatRupiah(data.amount)}*\n` +
+        `📂 Kategori: ${data.categoryName}\n` +
+        `🏦 Akun: ${account?.name || "Unkown"}\n` +
+        `📝 Catatan: ${data.description || "-"}\n` +
+        `📅 Tanggal: ${data.today}`,
+      { parse_mode: "Markdown" },
+    );
+  }
 }
 
 // /balance

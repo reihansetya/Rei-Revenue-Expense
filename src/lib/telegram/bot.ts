@@ -9,6 +9,7 @@ import {
   handleSummary,
   handleCategories,
   handleCallback,
+  handleTextMessage,
 } from "./commands";
 import { Context } from "telegraf";
 import rateLimit from "telegraf-ratelimit";
@@ -40,6 +41,7 @@ bot.command("summary", handleSummary);
 bot.command("categories", handleCategories);
 
 bot.on("callback_query", handleCallback);
+bot.on("text", handleTextMessage);
 
 export async function setupBotCommands() {
   await bot.telegram.setMyCommands([
