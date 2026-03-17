@@ -92,7 +92,7 @@ export function AccountsList({
       return;
     }
     setDialogOpen(false);
-    toast.success("Dompet berhasil ditambahkan");
+    toast.success("Dompet berhasil ditambahkan", { duration: 1500 });
     router.refresh();
   }
 
@@ -104,7 +104,7 @@ export function AccountsList({
       return;
     }
     setEditingAccount(null);
-    toast.success("Dompet berhasil diupdate");
+    toast.success("Dompet berhasil diupdate", { duration: 1500 });
     router.refresh();
   }
 
@@ -118,7 +118,7 @@ export function AccountsList({
             toast.error(result.error);
             return;
           }
-          toast.success("Dompet berhasil dihapus");
+          toast.success("Dompet berhasil dihapus", { duration: 1500 });
           router.refresh();
         },
       },
@@ -140,7 +140,7 @@ export function AccountsList({
       toast.error(result.error);
       return;
     }
-    toast.success("Saldo investasi berhasil diupdate");
+    toast.success("Saldo investasi berhasil diupdate", { duration: 1500 });
     router.refresh();
   }
 

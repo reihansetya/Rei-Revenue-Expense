@@ -38,7 +38,7 @@ export function CategoriesList({
       return;
     }
     setDialogOpen(false);
-    toast.success("Kategori berhasil ditambahkan");
+    toast.success("Kategori berhasil ditambahkan", { duration: 1500 });
     router.refresh();
   }
 
@@ -50,7 +50,7 @@ export function CategoriesList({
       return;
     }
     setEditingCategory(null);
-    toast.success("Kategori berhasil diupdate");
+    toast.success("Kategori berhasil diupdate", { duration: 1500 });
     router.refresh();
   }
 
@@ -64,7 +64,7 @@ export function CategoriesList({
             toast.error(result.error);
             return;
           }
-          toast.success("Kategori berhasil dihapus");
+          toast.success("Kategori berhasil dihapus", { duration: 1500 });
           router.refresh();
         },
       },

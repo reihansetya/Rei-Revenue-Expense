@@ -5,12 +5,7 @@ import { Account, Category } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  Trash2,
-  ReceiptText,
-  Search,
-} from "lucide-react";
+import { Plus, Trash2, ReceiptText, Search } from "lucide-react";
 import { FormattedCurrency } from "@/components/ui/formatted-currency";
 import { createTransaction, deleteTransaction } from "./actions";
 import { TransactionFormDialog } from "./transaction-form-dialog";
@@ -18,7 +13,6 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
-
 
 interface TransactionWithRelations {
   id: string;
@@ -47,7 +41,9 @@ export function TransactionsList({
   const router = useRouter();
 
   const filteredTransactions = initialTransactions.filter((t) => {
-    const matchesSearch = !searchQuery || t.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      !searchQuery ||
+      t.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = typeFilter === "all" || t.type === typeFilter;
     return matchesSearch && matchesType;
   });
@@ -59,13 +55,21 @@ export function TransactionsList({
       return;
     }
     setDialogOpen(false);
-    toast.success("Transaksi berhasil ditambahkan", { closeButton: true });
+    toast.success("Transaksi berhasil ditambahkan", { duration: 1500 });
     router.refresh();
   }
 
   async function handleDelete(id: string) {
     toast("Hapus transaksi ini?", {
       closeButton: true,
+      classNames: {
+        toast:
+          "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+        actionButton:
+          "!bg-destructive hover:!bg-destructive/90 !text-white font-medium px-4",
+        cancelButton:
+          "!bg-secondary hover:!bg-secondary/80 !text-secondary-foreground font-medium px-4",
+      },
       action: {
         label: "Hapus",
         onClick: async () => {
@@ -74,7 +78,7 @@ export function TransactionsList({
             toast.error(result.error, { closeButton: true });
             return;
           }
-          toast.success("Transaksi berhasil dihapus", { closeButton: true });
+          toast.success("Transaksi berhasil dihapus", { duration: 1500 });
           router.refresh();
         },
       },
@@ -106,7 +110,11 @@ export function TransactionsList({
               size="sm"
               onClick={() => setTypeFilter(type)}
             >
-              {type === "all" ? "Semua" : type === "income" ? "Pemasukan" : "Pengeluaran"}
+              {type === "all"
+                ? "Semua"
+                : type === "income"
+                  ? "Pemasukan"
+                  : "Pengeluaran"}
             </Button>
           ))}
         </div>
@@ -132,18 +140,24 @@ export function TransactionsList({
                         : "#EF444420",
                   }}
                 >
-                  {transaction.categories?.icon || (transaction.type === "income" ? "💰" : "💸")}
+                  {transaction.categories?.icon ||
+                    (transaction.type === "income" ? "💰" : "💸")}
                 </div>
                 <div>
                   <p className="font-medium text-sm">
-                    {transaction.categories?.name || (transaction.type === "income" ? "Pemasukan" : "Pengeluaran")}
+                    {transaction.categories?.name ||
+                      (transaction.type === "income"
+                        ? "Pemasukan"
+                        : "Pengeluaran")}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {transaction.description || "Tidak ada catatan"}
                     {transaction.accounts && ` · ${transaction.accounts.name}`}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(transaction.date), "dd MMM yyyy", { locale: localeId })}
+                    {format(new Date(transaction.date), "dd MMM yyyy", {
+                      locale: localeId,
+                    })}
                   </p>
                 </div>
               </div>

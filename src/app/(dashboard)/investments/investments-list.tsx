@@ -68,7 +68,7 @@ export function InvestmentsList({
       toast.error(result.error);
       return;
     }
-    toast.success("Saldo investasi berhasil diupdate");
+    toast.success("Saldo investasi berhasil diupdate", { duration: 1500 });
     router.refresh();
   }
 
