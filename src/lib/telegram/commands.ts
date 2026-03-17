@@ -18,18 +18,29 @@ const APP_URL =
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : "http://localhost:3000");
 
-// Simpan data transaksi sementara sebelum user pilih akun
-const pendingTransactions = new Map<string, any>();
+// Helper functions untuk interaksi Supabase Session (pengganti In-Memory Map)
+async function getTelegramSession(telegramId: number) {
+  const { data, error } = await supabase
+    .from("telegram_sessions")
+    .select("session_data")
+    .eq("telegram_id", telegramId)
+    .single();
 
-// Simpan state user saat menggunakan Wizard (langkah-demi-langkah)
-const userSessions = new Map<string, { 
-  type: "expense" | "income", 
-  step: "amount" | "category" | "description",
-  amount?: number,
-  categoryId?: string,
-  categoryName?: string,
-  description?: string
-}>();
+  if (error || !data) return null;
+  return data.session_data;
+}
+
+async function setTelegramSession(telegramId: number, sessionData: any) {
+  await supabase.from("telegram_sessions").upsert({
+    telegram_id: telegramId,
+    session_data: sessionData,
+    updated_at: new Date().toISOString(),
+  });
+}
+
+async function deleteTelegramSession(telegramId: number) {
+  await supabase.from("telegram_sessions").delete().eq("telegram_id", telegramId);
+}
 
 // Helper: get user by telegram_id
 async function getUserByTelegramId(telegramId: number) {
@@ -171,7 +182,7 @@ export async function handleExpense(ctx: Context) {
 
   // LOGIKA WIZARD (Jika tanpa argumen)
   if (parts.length === 0) {
-    userSessions.set(telegramId.toString(), { type: "expense", step: "amount" });
+    await setTelegramSession(telegramId, { type: "wizard", wizardType: "expense", step: "amount" });
     await ctx.reply("💸 *Catat Pengeluaran Baru*\n\nBerapa nominalnya? (Contoh: `50k`, `100000`, `2.5jt`)", { parse_mode: "Markdown" });
     return;
   }
@@ -214,7 +225,7 @@ export async function handleIncome(ctx: Context) {
 
   // LOGIKA WIZARD
   if (parts.length === 0) {
-    userSessions.set(telegramId.toString(), { type: "income", step: "amount" });
+    await setTelegramSession(telegramId, { type: "wizard", wizardType: "income", step: "amount" });
     await ctx.reply("💰 *Catat Pemasukan Baru*\n\nBerapa nominalnya? (Contoh: `5jt`, `500k`)", { parse_mode: "Markdown" });
     return;
   }
@@ -250,14 +261,16 @@ async function showAccountSelection(ctx: Context, profile: any, type: string, am
   }
 
   const requestId = Math.random().toString(36).slice(2, 10);
-  pendingTransactions.set(requestId, {
+  await setTelegramSession(profile.telegram_id, {
+    type: "pending",
     userId: profile.user_id,
-    type,
+    wizardType: type,
     amount,
     categoryId: category?.id || null,
     categoryName: category ? category.icon + " " + category.name : "Tanpa Kategori",
     description,
     today: new Date().toISOString().split("T")[0],
+    requestId,
   });
 
   const buttons = accounts.map((acc: any) =>
@@ -285,8 +298,8 @@ export async function handleTextMessage(ctx: Context) {
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
 
-  const session = userSessions.get(telegramId.toString());
-  if (!session) return; // Bukan sedang dalam session wizard
+  const session = await getTelegramSession(telegramId);
+  if (!session || session.type !== "wizard") return; // Bukan sedang dalam session wizard
 
   const text = ctx.message && "text" in ctx.message ? ctx.message.text : "";
 
@@ -308,21 +321,23 @@ export async function handleTextMessage(ctx: Context) {
     if (parts.length > 1) {
       const categoryName = parts[1];
       const description = parts.slice(2).join(" ") || null;
-      const category = findCategory(profile.categories, session.type, categoryName);
+      const category = findCategory(profile.categories, session.wizardType, categoryName);
 
-      userSessions.delete(telegramId.toString()); // Hapus session wizard
-      await showAccountSelection(ctx, profile, session.type, amount, category, description);
+      await deleteTelegramSession(telegramId); // Hapus session wizard
+      await showAccountSelection(ctx, profile, session.wizardType, amount, category, description);
       return;
     }
 
     // JIKA HANYA INPUT NOMINAL (Lanjut Wizard Normal)
     session.amount = amount;
     session.step = "category";
+    await setTelegramSession(telegramId, session);
 
-    const categories = (profile.categories as any[]).filter(c => c.type === session.type);
+    const categories = (profile.categories as any[]).filter(c => c.type === session.wizardType);
 
     if (categories.length === 0) {
        session.step = "description";
+       await setTelegramSession(telegramId, session);
        await ctx.reply("📂 Belum ada kategori. Langsung tulis catatan/deskripsi (atau ketik 'skip'):");
        return;
     }
@@ -349,8 +364,8 @@ export async function handleTextMessage(ctx: Context) {
 
     const category = session.categoryId ? { id: session.categoryId, name: session.categoryName?.split(" ").slice(1).join(" "), icon: session.categoryName?.split(" ")[0] } : null;
 
-    userSessions.delete(telegramId.toString()); // Bersihkan session
-    await showAccountSelection(ctx, profile, session.type, session.amount!, category, description);
+    await deleteTelegramSession(telegramId); // Bersihkan session
+    await showAccountSelection(ctx, profile, session.wizardType, session.amount!, category, description);
   }
 }
 
@@ -360,16 +375,18 @@ export async function handleCallback(ctx: Context) {
   if (!cbData) return;
 
   const telegramId = ctx.from?.id;
+  if (!telegramId) return;
 
   // CASE 1: Pilihan Kategori (Wizard)
   if (cbData.startsWith("c:")) {
-    const session = userSessions.get(telegramId?.toString() || "");
-    if (!session) return;
+    const session = await getTelegramSession(telegramId);
+    if (!session || session.type !== "wizard") return;
 
     const [, categoryId, categoryName] = cbData.split(":");
     session.categoryId = categoryId;
     session.categoryName = categoryName;
     session.step = "description";
+    await setTelegramSession(telegramId, session);
 
     await ctx.editMessageText(`📂 Kategori: *${categoryName}*\n\nSekarang tulis catatan/deskripsi (atau ketik \`skip\`)`, { parse_mode: "Markdown" });
     return;
@@ -378,44 +395,44 @@ export async function handleCallback(ctx: Context) {
   // CASE 2: Pilihan Akun (Final)
   if (cbData.startsWith("a:")) {
     const [, requestId, accountId] = cbData.split(":");
-    const data = pendingTransactions.get(requestId);
+    const data = await getTelegramSession(telegramId);
 
-  if (!data) {
-    await ctx.answerCbQuery("❌ Sesi berakhir atau data tidak ditemukan.");
-    return;
-  }
+    if (!data || data.type !== "pending" || data.requestId !== requestId) {
+      await ctx.answerCbQuery("❌ Sesi berakhir atau data tidak ditemukan.");
+      return;
+    }
 
-  // Ambil nama akun untuk konfirmasi
-  const { data: account } = await supabase
-    .from("accounts")
-    .select("name")
-    .eq("id", accountId)
-    .single();
+    // Ambil nama akun untuk konfirmasi
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("name")
+      .eq("id", accountId)
+      .single();
 
-  // Simpan ke database
-  const { error } = await supabase.from("transactions").insert({
-    user_id: data.userId,
-    type: data.type,
-    amount: data.amount,
-    description: data.description,
-    date: data.today,
-    account_id: accountId,
-    category_id: data.categoryId,
-    source: "telegram",
-  });
+    // Simpan ke database
+    const { error } = await supabase.from("transactions").insert({
+      user_id: data.userId,
+      type: data.wizardType,
+      amount: data.amount,
+      description: data.description,
+      date: data.today,
+      account_id: accountId,
+      category_id: data.categoryId,
+      source: "telegram",
+    });
 
-  if (error) {
-    await ctx.answerCbQuery(`❌ Gagal menyimpan: ${error.message}`);
-    return;
-  }
+    if (error) {
+      await ctx.answerCbQuery(`❌ Gagal menyimpan: ${error.message}`);
+      return;
+    }
 
-  // Hapus dari memory
-  pendingTransactions.delete(requestId);
+    // Hapus dari session db
+    await deleteTelegramSession(telegramId);
 
-  // Update pesan agar tidak bisa diklik lagi (ganti dengan status sukses)
-  await ctx.answerCbQuery("✅ Berhasil disimpan!");
+    // Update pesan agar tidak bisa diklik lagi (ganti dengan status sukses)
+    await ctx.answerCbQuery("✅ Berhasil disimpan!");
     await ctx.editMessageText(
-      `✅ *${data.type === "expense" ? "Pengeluaran" : "Pemasukan"} Tercatat!*\n\n` +
+      `✅ *${data.wizardType === "expense" ? "Pengeluaran" : "Pemasukan"} Tercatat!*\n\n` +
         `💵 Jumlah: *${formatRupiah(data.amount)}*\n` +
         `📂 Kategori: ${data.categoryName}\n` +
         `🏦 Akun: ${account?.name || "Unkown"}\n` +
