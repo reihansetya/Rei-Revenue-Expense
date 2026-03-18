@@ -1,13 +1,14 @@
-import { getTransactions } from "./actions";
+import { getTransactions, getAvailableMonths } from "./actions";
 import { getAccounts } from "../accounts/actions";
 import { getCategories } from "../categories/actions";
 import { TransactionsList } from "./transactions-list";
 
 export default async function TransactionsPage() {
-  const [transactions, accounts, categories] = await Promise.all([
+  const [transactions, accounts, categories, monthOptions] = await Promise.all([
     getTransactions(),
     getAccounts(),
     getCategories(),
+    getAvailableMonths(),
   ]);
 
   return (
@@ -19,6 +20,7 @@ export default async function TransactionsPage() {
         initialTransactions={transactions}
         accounts={accounts}
         categories={categories}
+        monthOptions={monthOptions}
       />
     </div>
   );

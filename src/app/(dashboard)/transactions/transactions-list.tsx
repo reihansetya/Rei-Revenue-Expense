@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Account, Category } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, Trash2, ReceiptText, Search } from "lucide-react";
+import { Trash2, ReceiptText } from "lucide-react";
 import { FormattedCurrency } from "@/components/ui/formatted-currency";
-import { createTransaction, deleteTransaction } from "./actions";
+import { createTransaction, deleteTransaction, getTransactions } from "./actions";
 import { TransactionFormDialog } from "./transaction-form-dialog";
+import { FilterBar, FilterState } from "./filter-bar";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -26,27 +26,92 @@ interface TransactionWithRelations {
   categories: { name: string; icon: string; color: string } | null;
 }
 
+interface MonthOption {
+  key: string;
+  label: string;
+}
+
 export function TransactionsList({
   initialTransactions,
   accounts,
   categories,
+  monthOptions,
 }: {
   initialTransactions: TransactionWithRelations[];
   accounts: Account[];
   categories: Category[];
+  monthOptions: MonthOption[];
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const filteredTransactions = initialTransactions.filter((t) => {
-    const matchesSearch =
-      !searchQuery ||
-      t.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === "all" || t.type === typeFilter;
-    return matchesSearch && matchesType;
-  });
+  // Calculate date range from period filter
+  const getDateRange = (period: string, customStart?: string, customEnd?: string) => {
+    const now = new Date();
+
+    if (period === "current") {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      return {
+        startDate: format(start, "yyyy-MM-dd"),
+        endDate: format(end, "yyyy-MM-dd"),
+      };
+    }
+
+    if (period === "last") {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 0);
+      return {
+        startDate: format(start, "yyyy-MM-dd"),
+        endDate: format(end, "yyyy-MM-dd"),
+      };
+    }
+
+    if (period === "custom" && customStart && customEnd) {
+      return {
+        startDate: customStart,
+        endDate: customEnd,
+      };
+    }
+
+    // Specific month (format: "2026-03")
+    if (period.match(/^\d{4}-\d{2}$/)) {
+      const [year, month] = period.split("-").map(Number);
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 0);
+      return {
+        startDate: format(start, "yyyy-MM-dd"),
+        endDate: format(end, "yyyy-MM-dd"),
+      };
+    }
+
+    return { startDate: undefined, endDate: undefined };
+  };
+
+  // Handle filter change
+  const handleFilterChange = async (filters: FilterState) => {
+    setIsLoading(true);
+
+    const { startDate, endDate } = getDateRange(
+      filters.period,
+      filters.customStartDate,
+      filters.customEndDate
+    );
+
+    const data = await getTransactions({
+      type: filters.type,
+      search: filters.search || undefined,
+      startDate,
+      endDate,
+      categoryId: filters.categoryIds,
+      accountId: filters.accountIds,
+    });
+
+    setTransactions(data as TransactionWithRelations[]);
+    setIsLoading(false);
+  };
 
   async function handleCreate(formData: FormData) {
     const result = await createTransaction(formData);
@@ -91,42 +156,25 @@ export function TransactionsList({
 
   return (
     <>
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Cari transaksi..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Filter Bar */}
+      <FilterBar
+        accounts={accounts}
+        categories={categories}
+        monthOptions={monthOptions}
+        onFilterChange={handleFilterChange}
+        onAddClick={() => setDialogOpen(true)}
+      />
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-4 text-muted-foreground">
+          Memuat data...
         </div>
-        <div className="flex gap-2">
-          {["all", "income", "expense"].map((type) => (
-            <Button
-              key={type}
-              variant={typeFilter === type ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTypeFilter(type)}
-            >
-              {type === "all"
-                ? "Semua"
-                : type === "income"
-                  ? "Pemasukan"
-                  : "Pengeluaran"}
-            </Button>
-          ))}
-        </div>
-        <Button onClick={() => setDialogOpen(true)} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Tambah
-        </Button>
-      </div>
+      )}
 
       {/* Transaction List */}
       <div className="space-y-2">
-        {filteredTransactions.map((transaction) => (
+        {!isLoading && transactions.map((transaction) => (
           <Card key={transaction.id}>
             <CardContent className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
@@ -187,13 +235,11 @@ export function TransactionsList({
           </Card>
         ))}
 
-        {filteredTransactions.length === 0 && (
+        {!isLoading && transactions.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             <ReceiptText className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>
-              {searchQuery || typeFilter !== "all"
-                ? "Tidak ada transaksi yang cocok"
-                : "Belum ada transaksi. Tambahkan yang pertama!"}
+              Tidak ada transaksi yang cocok atau ditemukan.
             </p>
           </div>
         )}

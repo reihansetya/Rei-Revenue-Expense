@@ -141,68 +141,75 @@ export function InvestmentsList({
           <CardTitle className="text-base">List Instrument Investasi</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {initialGainLoss.map((item) => {
-            const pos = item.total_gain_loss >= 0;
-            const Icon =
-              item.total_gain_loss === 0
-                ? Minus
-                : pos
-                  ? TrendingUp
-                  : TrendingDown;
-            const account = initialAccounts.find(
-              (a) => a.id === item.account_id,
-            );
+          {initialGainLoss
+            .slice()
+            .sort(
+              (a, b) => Number(b.current_balance) - Number(a.current_balance),
+            )
+            .map((item) => {
+              const pos = item.total_gain_loss >= 0;
+              const Icon =
+                item.total_gain_loss === 0
+                  ? Minus
+                  : pos
+                    ? TrendingUp
+                    : TrendingDown;
+              const account = initialAccounts.find(
+                (a) => a.id === item.account_id,
+              );
 
-            return (
-              <div
-                key={item.account_id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border gap-3"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0"
-                    style={{
-                      backgroundColor: `${account?.color || "#8B5CF6"}20`,
-                      color: account?.color || "#8B5CF6",
-                    }}
-                  >
-                    <TrendingUp className="h-5 w-5" />
+              return (
+                <div
+                  key={item.account_id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border gap-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0"
+                      style={{
+                        backgroundColor: `${account?.color || "#8B5CF6"}20`,
+                        color: account?.color || "#8B5CF6",
+                      }}
+                    >
+                      <TrendingUp className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">
+                        {item.account_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Saldo: {formatCurrency(item.current_balance)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{item.account_name}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      Saldo: {formatCurrency(item.current_balance)}
-                    </p>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:shrink-0 w-full sm:w-auto border-t sm:border-0 pt-2 sm:pt-0">
+                    <div className="text-right">
+                      <p
+                        className={`text-sm font-bold truncate ${pos ? "text-emerald-600" : "text-red-600"}`}
+                      >
+                        {pos ? "+" : ""}
+                        {formatCurrency(item.total_gain_loss)}
+                      </p>
+                      <p
+                        className={`text-xs ${pos ? "text-emerald-500" : "text-red-500"}`}
+                      >
+                        {pos ? "+" : ""}
+                        {item.gain_loss_percentage}%
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setUpdateAccount(account || null)}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Update
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3 sm:shrink-0 w-full sm:w-auto border-t sm:border-0 pt-2 sm:pt-0">
-                  <div className="text-right">
-                    <p
-                      className={`text-sm font-bold truncate ${pos ? "text-emerald-600" : "text-red-600"}`}
-                    >
-                      {pos ? "+" : ""}
-                      {formatCurrency(item.total_gain_loss)}
-                    </p>
-                    <p
-                      className={`text-xs ${pos ? "text-emerald-500" : "text-red-500"}`}
-                    >
-                      {pos ? "+" : ""}
-                      {item.gain_loss_percentage}%
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => setUpdateAccount(account || null)}
-                  >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    Update
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </CardContent>
       </Card>
 
