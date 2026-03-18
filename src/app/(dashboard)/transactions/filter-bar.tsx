@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Select,
@@ -38,10 +38,12 @@ export interface FilterState {
   type: string;
   categoryIds: string[];
   accountIds: string[];
-  period: string; // "current" | "last" | "2026-03" | "custom"
+  period: string;
   customStartDate?: string;
   customEndDate?: string;
 }
+
+const DEBOUNCE_DELAY = 300;
 
 export function FilterBar({
   accounts,
@@ -60,18 +62,49 @@ export function FilterBar({
 
   const [showCustomRange, setShowCustomRange] = useState(false);
 
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const onFilterChangeRef = useRef(onFilterChange);
+
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange;
+  }, [onFilterChange]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const debouncedFilterChange = useCallback(
+    (newFilters: FilterState, shouldDebounce: boolean = false) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      if (shouldDebounce) {
+        debounceTimeoutRef.current = setTimeout(() => {
+          onFilterChangeRef.current(newFilters);
+        }, DEBOUNCE_DELAY);
+      } else {
+        onFilterChangeRef.current(newFilters);
+      }
+    },
+    [],
+  );
+
   const updateFilter = <K extends keyof FilterState>(
     key: K,
     value: FilterState[K],
+    shouldDebounce: boolean = false,
   ) => {
     const newFilters = { ...filters, [key]: value };
 
-    // Reset category if type changes
     if (key === "type") {
       newFilters.categoryIds = [];
     }
 
-    // Reset custom dates if not custom period
     if (key === "period" && (value as string) !== "custom") {
       newFilters.customStartDate = undefined;
       newFilters.customEndDate = undefined;
@@ -83,14 +116,13 @@ export function FilterBar({
     }
 
     setFilters(newFilters);
-    onFilterChange(newFilters);
+    debouncedFilterChange(newFilters, shouldDebounce);
   };
 
   const toggleMultiSelect = (key: "categoryIds" | "accountIds", id: string) => {
     const current = filters[key];
     const exists = current.includes(id);
     const updated = exists ? current.filter((i) => i !== id) : [...current, id];
-
     updateFilter(key, updated);
   };
 
@@ -145,7 +177,6 @@ export function FilterBar({
     return value?.toString() || "";
   };
 
-  // Filter categories by type
   const expenseCategories = categories.filter((c) => c.type === "expense");
   const incomeCategories = categories.filter((c) => c.type === "income");
 
@@ -158,7 +189,7 @@ export function FilterBar({
           placeholder="Cari transaksi..."
           className="pl-10"
           value={filters.search}
-          onChange={(e) => updateFilter("search", e.target.value)}
+          onChange={(e) => updateFilter("search", e.target.value, true)}
         />
       </div>
 
