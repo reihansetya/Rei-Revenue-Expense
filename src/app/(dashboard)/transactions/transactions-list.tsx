@@ -9,6 +9,7 @@ import { FormattedCurrency } from "@/components/ui/formatted-currency";
 import { createTransaction, deleteTransaction, getTransactions } from "./actions";
 import { TransactionFormDialog } from "./transaction-form-dialog";
 import { FilterBar, FilterState } from "./filter-bar";
+import { TransactionsListSkeleton } from "./transactions-skeleton";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -166,14 +167,10 @@ export function TransactionsList({
       />
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="text-center py-4 text-muted-foreground">
-          Memuat data...
-        </div>
-      )}
-
-      {/* Transaction List */}
-      <div className="space-y-2">
+      {isLoading ? (
+        <TransactionsListSkeleton count={5} />
+      ) : (
+        <div className="space-y-2">
         {!isLoading && transactions.map((transaction) => (
           <Card key={transaction.id}>
             <CardContent className="flex items-center justify-between p-4">
@@ -244,6 +241,7 @@ export function TransactionsList({
           </div>
         )}
       </div>
+      )}
 
       <TransactionFormDialog
         open={dialogOpen}
