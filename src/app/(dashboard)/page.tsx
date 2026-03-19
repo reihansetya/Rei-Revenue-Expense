@@ -1,37 +1,69 @@
-import { getDashboardData } from "./actions";
+"use client";
+
+import { useState } from "react";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { SpendingPieChart } from "@/components/dashboard/spending-pie-chart";
 import { MonthlyBarChart } from "@/components/dashboard/monthly-bar-chart";
 import { DailyTrendChart } from "@/components/dashboard/daily-trend-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { useDashboard } from "@/queries/dashboard";
+import { format, addMonths } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function DashboardPage() {
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    return format(now, "yyyy-MM");
+  });
 
-  if (!user) {
-    redirect("/login");
-  }
+  const { data, isLoading, error } = useDashboard(currentMonth);
 
-  const data = await getDashboardData();
+  const handlePreviousMonth = () => {
+    setCurrentMonth((prev) => format(addMonths(new Date(prev + "-01"), -1), "yyyy-MM"));
+  };
 
-  if (!data) {
+  const handleNextMonth = () => {
+    setCurrentMonth((prev) => format(addMonths(new Date(prev + "-01"), 1), "yyyy-MM"));
+  };
+
+  const currentMonthLabel = format(new Date(currentMonth + "-01"), "MMMM yyyy", {
+    locale: localeId,
+  });
+
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Gagal memuat data</p>
+        <p className="text-red-500">Gagal memuat data: {error.message}</p>
+      </div>
+    );
+  }
+
+  if (isLoading || !data) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Memuat data...</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Header with Month Navigation */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">{data.currentMonth}</p>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">{currentMonthLabel}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={handleNextMonth}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}

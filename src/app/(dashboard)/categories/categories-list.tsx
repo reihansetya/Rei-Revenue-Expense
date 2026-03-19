@@ -12,10 +12,14 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
 } from "lucide-react";
-import { createCategory, updateCategory } from "./actions";
 import { CategoryFormDialog } from "./category-form-dialog";
 import { toast } from "sonner";
-import { useCategories, useDeleteCategory } from "@/queries/categories";
+import {
+  useCategories,
+  useDeleteCategory,
+  useCreateCategory,
+  useUpdateCategory,
+} from "@/queries/categories";
 
 export function CategoriesList({
   initialCategories,
@@ -28,29 +32,49 @@ export function CategoriesList({
   // TanStack Query — gunakan initialCategories sebagai seed data
   const { data: categories = initialCategories } = useCategories();
   const deleteMutation = useDeleteCategory();
+  const createCategoryMutation = useCreateCategory();
+  const updateCategoryMutation = useUpdateCategory();
 
   const incomeCategories = categories.filter((c) => c.type === "income");
   const expenseCategories = categories.filter((c) => c.type === "expense");
 
   async function handleCreate(formData: FormData) {
-    const result = await createCategory(formData);
-    if (result?.error) {
-      toast.error(result.error);
-      return;
-    }
-    setDialogOpen(false);
-    toast.success("Kategori berhasil ditambahkan", { duration: 1500 });
+    return new Promise<void>((resolve) => {
+      createCategoryMutation.mutate(formData, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          resolve();
+        },
+        onError: (error) => {
+          toast.error(error.message || "Gagal menambahkan kategori", {
+            closeButton: true,
+          });
+          resolve();
+        },
+      });
+    });
   }
 
   async function handleUpdate(formData: FormData) {
     if (!editingCategory) return;
-    const result = await updateCategory(editingCategory.id!, formData);
-    if (result?.error) {
-      toast.error(result.error);
-      return;
-    }
-    setEditingCategory(null);
-    toast.success("Kategori berhasil diupdate", { duration: 1500 });
+
+    return new Promise<void>((resolve) => {
+      updateCategoryMutation.mutate(
+        { id: editingCategory.id!, formData },
+        {
+          onSuccess: () => {
+            setEditingCategory(null);
+            resolve();
+          },
+          onError: (error) => {
+            toast.error(error.message || "Gagal mengupdate kategori", {
+              closeButton: true,
+            });
+            resolve();
+          },
+        },
+      );
+    });
   }
 
   function handleDelete(id: string) {

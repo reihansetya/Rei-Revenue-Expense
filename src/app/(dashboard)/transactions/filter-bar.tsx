@@ -194,13 +194,13 @@ export function FilterBar({
       </div>
 
       {/* Filter Row */}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2">
         {/* Type Filter */}
         <Select
           value={filters.type}
           onValueChange={(v) => updateFilter("type", v || "all")}
         >
-          <SelectTrigger className="w-35">
+          <SelectTrigger className="w-full md:w-[130px]">
             <span className="text-muted-foreground mr-1">Tipe:</span>
             <SelectValue>{getLabel("type", filters.type)}</SelectValue>
           </SelectTrigger>
@@ -216,7 +216,7 @@ export function FilterBar({
           <PopoverTrigger
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "w-60 justify-between font-normal",
+              "w-full md:w-[220px] justify-between font-normal",
             )}
           >
             <span className="flex items-center overflow-hidden">
@@ -326,7 +326,7 @@ export function FilterBar({
           <PopoverTrigger
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "w-45 justify-between font-normal",
+              "w-full md:w-[160px] justify-between font-normal",
             )}
           >
             <span className="flex items-center overflow-hidden">
@@ -393,7 +393,7 @@ export function FilterBar({
           value={filters.period}
           onValueChange={(v) => updateFilter("period", v || "current")}
         >
-          <SelectTrigger className="w-45">
+          <SelectTrigger className="w-full md:w-[160px]">
             <span className="text-muted-foreground mr-1">Periode:</span>
             <SelectValue>{getLabel("period", filters.period)}</SelectValue>
           </SelectTrigger>

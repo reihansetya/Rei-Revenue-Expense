@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ArrowRight } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -31,70 +31,74 @@ export function DateRangePicker({ onApply, onClose }: DateRangePickerProps) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/30 border rounded-lg mt-2 text-sm w-full">
-      <span className="font-medium text-muted-foreground">Pilih Tanggal:</span>
-      
-      <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger 
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "w-40 justify-start text-left font-normal",
-              !startDate && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {startDate
-              ? format(startDate, "dd MMM yyyy", { locale: localeId })
-              : "Dari"}
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={startDate}
-              onSelect={setStartDate}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+    <div className="flex flex-col gap-4 p-4 bg-card border rounded-xl mt-3 shadow-md animate-in fade-in zoom-in-95 duration-200">
+      <div className="flex flex-col gap-3">
+        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+          <CalendarIcon className="h-3.5 w-3.5" />
+          Tentukan Rentang Tanggal
+        </label>
+        
+        <div className="flex items-center gap-2 w-full max-w-lg">
+          <Popover>
+            <PopoverTrigger 
+              className={cn(
+                buttonVariants({ variant: "outline", size: "default" }),
+                "flex-1 justify-start text-left font-normal bg-background/50",
+                !startDate && "text-muted-foreground"
+              )}
+            >
+              {startDate
+                ? format(startDate, "dd MMM yyyy", { locale: localeId })
+                : "Tanggal Mulai"}
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={setStartDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
-        <span className="text-muted-foreground">-</span>
+          <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
 
-        <Popover>
-          <PopoverTrigger 
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "w-40 justify-start text-left font-normal",
-              !endDate && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {endDate
-              ? format(endDate, "dd MMM yyyy", { locale: localeId })
-              : "Sampai"}
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={endDate}
-              onSelect={setEndDate}
-              disabled={(date) => startDate ? date < startDate : false}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+          <Popover>
+            <PopoverTrigger 
+              className={cn(
+                buttonVariants({ variant: "outline", size: "default" }),
+                "flex-1 justify-start text-left font-normal bg-background/50",
+                !endDate && "text-muted-foreground"
+              )}
+            >
+              {endDate
+                ? format(endDate, "dd MMM yyyy", { locale: localeId })
+                : "Tanggal Akhir"}
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={setEndDate}
+                disabled={(date) => (startDate ? date < startDate : false)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:ml-auto">
-        <Button variant="ghost" size="sm" onClick={onClose}>
+      <div className="flex items-center justify-end gap-2 pt-2 border-t mt-1">
+        <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground">
           Batal
         </Button>
         <Button
           size="sm"
           onClick={handleApply}
           disabled={!startDate || !endDate}
+          className="bg-primary hover:bg-primary/90 px-6"
         >
-          Terapkan
+          Terapkan Filter
         </Button>
       </div>
     </div>

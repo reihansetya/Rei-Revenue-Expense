@@ -15,7 +15,6 @@ import {
   TrendingUp,
   RefreshCw,
 } from "lucide-react";
-import { createAccount, updateAccount } from "./actions";
 import { AccountFormDialog } from "./account-form-dialog";
 import { UpdateBalanceDialog } from "./update-balance-dialog";
 import { toast } from "sonner";
@@ -24,6 +23,8 @@ import {
   useAccounts,
   useDeleteAccount,
   useUpdateInvestmentBalance,
+  useCreateAccount,
+  useUpdateAccount,
 } from "@/queries/accounts";
 
 const accountTypeIcons: Record<string, React.ReactNode> = {
@@ -57,6 +58,8 @@ export function AccountsList({
   const { data: accounts = initialAccounts } = useAccounts();
   const deleteMutation = useDeleteAccount();
   const updateBalanceMutation = useUpdateInvestmentBalance();
+  const createAccountMutation = useCreateAccount();
+  const updateAccountMutation = useUpdateAccount();
 
   const sortedAccounts = [...accounts].sort(
     (a, b) => Number(b.balance) - Number(a.balance),
@@ -88,26 +91,43 @@ export function AccountsList({
   async function handleCreate(formData: FormData) {
     const rawBalance = formData.get("balance") as string;
     if (rawBalance) formData.set("balance", rawBalance.replace(/\./g, ""));
-    const result = await createAccount(formData);
-    if (result?.error) {
-      toast.error(result.error);
-      return;
-    }
-    setDialogOpen(false);
-    toast.success("Dompet berhasil ditambahkan", { duration: 1500 });
-    // TanStack Query tidak bisa invalidate di sini karena bukan useMutation
-    // tapi useAccounts akan refetch saat staleTime habis atau manual invalidasi
+
+    return new Promise<void>((resolve) => {
+      createAccountMutation.mutate(formData, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          resolve();
+        },
+        onError: (error) => {
+          toast.error(error.message || "Gagal menambahkan dompet", {
+            closeButton: true,
+          });
+          resolve();
+        },
+      });
+    });
   }
 
   async function handleUpdate(formData: FormData) {
     if (!editingAccount) return;
-    const result = await updateAccount(editingAccount.id!, formData);
-    if (result?.error) {
-      toast.error(result.error);
-      return;
-    }
-    setEditingAccount(null);
-    toast.success("Dompet berhasil diupdate", { duration: 1500 });
+
+    return new Promise<void>((resolve) => {
+      updateAccountMutation.mutate(
+        { id: editingAccount.id!, formData },
+        {
+          onSuccess: () => {
+            setEditingAccount(null);
+            resolve();
+          },
+          onError: (error) => {
+            toast.error(error.message || "Gagal mengupdate dompet", {
+              closeButton: true,
+            });
+            resolve();
+          },
+        },
+      );
+    });
   }
 
   function handleDelete(id: string) {
