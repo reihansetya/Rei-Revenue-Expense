@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { HideNominalProvider } from "@/components/providers/hide-nominal-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -59,12 +60,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <HideNominalProvider>
-            <TooltipProvider>
-              {children}
-              <Toaster richColors position="top-right" />
-            </TooltipProvider>
-          </HideNominalProvider>
+          <QueryProvider>
+            <HideNominalProvider>
+              <TooltipProvider>
+                {children}
+                <Toaster richColors position="top-right" />
+              </TooltipProvider>
+            </HideNominalProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

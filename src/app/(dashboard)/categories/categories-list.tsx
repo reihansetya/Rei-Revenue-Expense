@@ -12,10 +12,10 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
 } from "lucide-react";
-import { createCategory, updateCategory, deleteCategory } from "./actions";
+import { createCategory, updateCategory } from "./actions";
 import { CategoryFormDialog } from "./category-form-dialog";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useCategories, useDeleteCategory } from "@/queries/categories";
 
 export function CategoriesList({
   initialCategories,
@@ -24,12 +24,13 @@ export function CategoriesList({
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const router = useRouter();
 
-  const incomeCategories = initialCategories.filter((c) => c.type === "income");
-  const expenseCategories = initialCategories.filter(
-    (c) => c.type === "expense",
-  );
+  // TanStack Query — gunakan initialCategories sebagai seed data
+  const { data: categories = initialCategories } = useCategories();
+  const deleteMutation = useDeleteCategory();
+
+  const incomeCategories = categories.filter((c) => c.type === "income");
+  const expenseCategories = categories.filter((c) => c.type === "expense");
 
   async function handleCreate(formData: FormData) {
     const result = await createCategory(formData);
@@ -39,33 +40,25 @@ export function CategoriesList({
     }
     setDialogOpen(false);
     toast.success("Kategori berhasil ditambahkan", { duration: 1500 });
-    router.refresh();
   }
 
   async function handleUpdate(formData: FormData) {
     if (!editingCategory) return;
-    const result = await updateCategory(editingCategory.id, formData);
+    const result = await updateCategory(editingCategory.id!, formData);
     if (result?.error) {
       toast.error(result.error);
       return;
     }
     setEditingCategory(null);
     toast.success("Kategori berhasil diupdate", { duration: 1500 });
-    router.refresh();
   }
 
-  async function handleDelete(id: string) {
+  function handleDelete(id: string) {
     toast("Hapus kategori ini?", {
       action: {
         label: "Hapus",
-        onClick: async () => {
-          const result = await deleteCategory(id);
-          if (result?.error) {
-            toast.error(result.error);
-            return;
-          }
-          toast.success("Kategori berhasil dihapus", { duration: 1500 });
-          router.refresh();
+        onClick: () => {
+          deleteMutation.mutate(id);
         },
       },
       cancel: {
@@ -78,7 +71,7 @@ export function CategoriesList({
   function renderCategoryGroup(
     title: string,
     icon: React.ReactNode,
-    categories: Category[],
+    categoryList: Category[],
   ) {
     return (
       <div className="space-y-3">
@@ -86,11 +79,11 @@ export function CategoriesList({
           {icon}
           <h2 className="font-semibold">{title}</h2>
           <span className="text-xs text-muted-foreground">
-            ({categories.length})
+            ({categoryList.length})
           </span>
         </div>
         <div className="grid gap-2">
-          {categories.map((category) => (
+          {categoryList.map((category) => (
             <Card key={category.id}>
               <CardContent className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
@@ -115,7 +108,8 @@ export function CategoriesList({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => handleDelete(category.id)}
+                    onClick={() => handleDelete(category.id ?? "")}
+                    disabled={deleteMutation.isPending}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -123,7 +117,7 @@ export function CategoriesList({
               </CardContent>
             </Card>
           ))}
-          {categories.length === 0 && (
+          {categoryList.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
               Belum ada kategori
             </p>
@@ -155,7 +149,7 @@ export function CategoriesList({
         )}
       </div>
 
-      {initialCategories.length === 0 && (
+      {categories.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <Tags className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Belum ada kategori. Tambahkan kategori pertama Anda!</p>

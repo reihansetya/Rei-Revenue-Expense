@@ -203,7 +203,6 @@ export function TransfersList({ transfers }: TransfersListProps) {
               </AlertDialog>
             </div>
           </div>
-
         );
       })}
     </div>

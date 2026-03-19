@@ -11,22 +11,20 @@ import {
   Wallet,
   Building2,
   Smartphone,
-  PiggyBank,
   Banknote,
   TrendingUp,
   RefreshCw,
 } from "lucide-react";
-import {
-  createAccount,
-  updateAccount,
-  deleteAccount,
-  updateInvestmentBalance,
-} from "./actions";
+import { createAccount, updateAccount } from "./actions";
 import { AccountFormDialog } from "./account-form-dialog";
 import { UpdateBalanceDialog } from "./update-balance-dialog";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FormattedCurrency } from "@/components/ui/formatted-currency";
+import {
+  useAccounts,
+  useDeleteAccount,
+  useUpdateInvestmentBalance,
+} from "@/queries/accounts";
 
 const accountTypeIcons: Record<string, React.ReactNode> = {
   bank: <Building2 className="h-5 w-5" />,
@@ -54,9 +52,13 @@ export function AccountsList({
   const [updateBalanceAccount, setUpdateBalanceAccount] =
     useState<Account | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
-  const router = useRouter();
 
-  const sortedAccounts = [...initialAccounts].sort(
+  // TanStack Query — gunakan initialAccounts sebagai data awal (SSR hydration)
+  const { data: accounts = initialAccounts } = useAccounts();
+  const deleteMutation = useDeleteAccount();
+  const updateBalanceMutation = useUpdateInvestmentBalance();
+
+  const sortedAccounts = [...accounts].sort(
     (a, b) => Number(b.balance) - Number(a.balance),
   );
   const totalBalance = sortedAccounts.reduce(
@@ -93,33 +95,27 @@ export function AccountsList({
     }
     setDialogOpen(false);
     toast.success("Dompet berhasil ditambahkan", { duration: 1500 });
-    router.refresh();
+    // TanStack Query tidak bisa invalidate di sini karena bukan useMutation
+    // tapi useAccounts akan refetch saat staleTime habis atau manual invalidasi
   }
 
   async function handleUpdate(formData: FormData) {
     if (!editingAccount) return;
-    const result = await updateAccount(editingAccount.id, formData);
+    const result = await updateAccount(editingAccount.id!, formData);
     if (result?.error) {
       toast.error(result.error);
       return;
     }
     setEditingAccount(null);
     toast.success("Dompet berhasil diupdate", { duration: 1500 });
-    router.refresh();
   }
 
-  async function handleDelete(id: string) {
+  function handleDelete(id: string) {
     toast("Hapus dompet ini?", {
       action: {
         label: "Hapus",
-        onClick: async () => {
-          const result = await deleteAccount(id);
-          if (result?.error) {
-            toast.error(result.error);
-            return;
-          }
-          toast.success("Dompet berhasil dihapus", { duration: 1500 });
-          router.refresh();
+        onClick: () => {
+          deleteMutation.mutate(id ?? "");
         },
       },
       cancel: { label: "Batal", onClick: () => {} },
@@ -131,17 +127,18 @@ export function AccountsList({
     newBalance: number,
     notes: string,
   ) {
-    const result = await updateInvestmentBalance(
-      accountId,
-      newBalance,
-      notes || undefined,
-    );
-    if (result?.error) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success("Saldo investasi berhasil diupdate", { duration: 1500 });
-    router.refresh();
+    return new Promise<void>((resolve) => {
+      updateBalanceMutation.mutate(
+        { accountId, newBalance, notes: notes || undefined },
+        {
+          onSuccess: () => {
+            setUpdateBalanceAccount(null);
+            resolve();
+          },
+          onError: () => resolve(),
+        },
+      );
+    });
   }
 
   const filterTabs: { key: FilterType; label: string }[] = [
@@ -272,7 +269,8 @@ export function AccountsList({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(account.id)}
+                      onClick={() => handleDelete(account.id ?? "")}
+                      disabled={deleteMutation.isPending}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

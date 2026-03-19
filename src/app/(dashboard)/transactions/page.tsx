@@ -1,11 +1,12 @@
-import { getTransactions, getAvailableMonths } from "./actions";
+import { getAvailableMonths } from "./actions";
 import { getAccounts } from "../accounts/actions";
 import { getCategories } from "../categories/actions";
 import { TransactionsList } from "./transactions-list";
 
 export default async function TransactionsPage() {
-  const [transactions, accounts, categories, monthOptions] = await Promise.all([
-    getTransactions(),
+  // Fetch data statis (accounts, categories, monthOptions) di server
+  // Transactions di-fetch client-side via TanStack Query untuk caching
+  const [accounts, categories, monthOptions] = await Promise.all([
     getAccounts(),
     getCategories(),
     getAvailableMonths(),
@@ -17,7 +18,6 @@ export default async function TransactionsPage() {
         <h1 className="text-2xl font-bold tracking-tight">Transaksi</h1>
       </div>
       <TransactionsList
-        initialTransactions={transactions}
         accounts={accounts}
         categories={categories}
         monthOptions={monthOptions}

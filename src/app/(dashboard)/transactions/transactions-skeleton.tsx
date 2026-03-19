@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function TransactionsListSkeleton({ count = 8 }: { count?: number }) {
   return (
@@ -12,9 +12,13 @@ export function TransactionsListSkeleton({ count = 8 }: { count?: number }) {
               <div className="space-y-2">
                 <Skeleton className="h-4 w-28" />
                 <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-24" />
               </div>
             </div>
-            <Skeleton className="h-5 w-28" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -45,5 +49,5 @@ export function TransactionsSkeleton() {
       {/* Transaction List */}
       <TransactionsListSkeleton count={8} />
     </div>
-  )
+  );
 }
