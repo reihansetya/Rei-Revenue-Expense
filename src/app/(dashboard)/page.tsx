@@ -34,7 +34,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <p className="text-red-500">Gagal memuat data: {error.message}</p>
       </div>
     );
@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <p className="text-muted-foreground">Memuat data...</p>
       </div>
     );

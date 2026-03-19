@@ -119,18 +119,18 @@ export function TransactionsList({
                     {transaction.categories?.icon ||
                       (transaction.type === "income" ? "💰" : "💸")}
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">
                       {transaction.categories?.name ||
                         (transaction.type === "income"
                           ? "Pemasukan"
                           : "Pengeluaran")}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       {transaction.description || "Tidak ada catatan"}
                       {transaction.accounts && ` · ${transaction.accounts.name}`}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       {format(new Date(transaction.date), "dd MMM yyyy", {
                         locale: localeId,
                       })}
