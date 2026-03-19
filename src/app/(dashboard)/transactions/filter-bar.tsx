@@ -193,15 +193,15 @@ export function FilterBar({
         />
       </div>
 
-      {/* Filter Row */}
-      <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2">
+      {/* Filter Row + Tambah Button */}
+      <div className="flex flex-wrap items-center gap-2">
         {/* Type Filter */}
         <Select
           value={filters.type}
           onValueChange={(v) => updateFilter("type", v || "all")}
         >
-          <SelectTrigger className="w-full md:w-[130px]">
-            <span className="text-muted-foreground mr-1">Tipe:</span>
+          <SelectTrigger className="h-9 text-sm">
+            <span className="text-muted-foreground mr-1 text-xs">Tipe:</span>
             <SelectValue>{getLabel("type", filters.type)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -216,7 +216,7 @@ export function FilterBar({
           <PopoverTrigger
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "w-full md:w-[220px] justify-between font-normal",
+              "justify-between font-normal",
             )}
           >
             <span className="flex items-center overflow-hidden">
@@ -326,7 +326,7 @@ export function FilterBar({
           <PopoverTrigger
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "w-full md:w-[160px] justify-between font-normal",
+              "justify-between font-normal",
             )}
           >
             <span className="flex items-center overflow-hidden">
@@ -393,8 +393,8 @@ export function FilterBar({
           value={filters.period}
           onValueChange={(v) => updateFilter("period", v || "current")}
         >
-          <SelectTrigger className="w-full md:w-[160px]">
-            <span className="text-muted-foreground mr-1">Periode:</span>
+          <SelectTrigger className="h-9 text-sm">
+            <span className="text-muted-foreground mr-1 text-xs">Periode:</span>
             <SelectValue>{getLabel("period", filters.period)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -413,11 +413,7 @@ export function FilterBar({
             </SelectItem>
           </SelectContent>
         </Select>
-      </div>
-
-      {/* Button Row */}
-      <div className="flex justify-end">
-        <Button onClick={onAddClick} size="sm">
+        <Button onClick={onAddClick} size="sm" className="ml-auto shrink-0">
           <Plus className="h-4 w-4 mr-1" />
           Tambah
         </Button>

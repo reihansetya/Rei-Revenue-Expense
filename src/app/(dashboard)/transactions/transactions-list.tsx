@@ -87,7 +87,7 @@ export function TransactionsList({
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-4 w-full overflow-hidden">
       {/* Filter Bar */}
       <FilterBar
         accounts={accounts}
@@ -103,11 +103,11 @@ export function TransactionsList({
       ) : (
         <div className="space-y-2">
           {transactions.map((transaction) => (
-            <Card key={transaction.id}>
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
+            <Card key={transaction.id} className="overflow-hidden">
+              <CardContent className="flex items-center gap-2 p-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                   <div
-                    className="flex h-10 w-10 items-center justify-center rounded-lg text-lg"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base"
                     style={{
                       backgroundColor: transaction.categories
                         ? `${transaction.categories.color}20`
@@ -137,13 +137,13 @@ export function TransactionsList({
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 shrink-0">
                   <div className="text-right">
                     <FormattedCurrency
                       amount={Number(transaction.amount)}
                       showSign
                       sign={transaction.type === "income" ? "+" : "-"}
-                      className={`font-semibold ${
+                      className={`text-sm font-semibold ${
                         transaction.type === "income"
                           ? "text-emerald-500"
                           : "text-rose-500"
@@ -153,7 +153,7 @@ export function TransactionsList({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
                     onClick={() => handleDelete(transaction.id)}
                     disabled={deleteMutation.isPending}
                   >
@@ -180,6 +180,6 @@ export function TransactionsList({
         accounts={accounts}
         categories={categories}
       />
-    </>
+    </div>
   );
 }

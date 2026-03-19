@@ -21,6 +21,26 @@ interface DateRangePickerProps {
 export function DateRangePicker({ onApply, onClose }: DateRangePickerProps) {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [startOpen, setStartOpen] = useState(false);
+  const [endOpen, setEndOpen] = useState(false);
+
+  const handleSelectStart = (date: Date | undefined) => {
+    setStartDate(date);
+    setStartOpen(false); // tutup popover setelah pilih
+    // Kalau tanggal akhir sudah dipilih tapi lebih kecil dari tanggal mulai, reset
+    if (date && endDate && endDate < date) {
+      setEndDate(undefined);
+    }
+    // Buka popover tanggal akhir secara otomatis
+    if (date) {
+      setTimeout(() => setEndOpen(true), 100);
+    }
+  };
+
+  const handleSelectEnd = (date: Date | undefined) => {
+    setEndDate(date);
+    setEndOpen(false); // tutup popover setelah pilih
+  };
 
   const handleApply = () => {
     if (startDate && endDate) {
@@ -39,7 +59,8 @@ export function DateRangePicker({ onApply, onClose }: DateRangePickerProps) {
         </label>
         
         <div className="flex items-center gap-2 w-full max-w-lg">
-          <Popover>
+          {/* Tanggal Mulai */}
+          <Popover open={startOpen} onOpenChange={setStartOpen}>
             <PopoverTrigger 
               className={cn(
                 buttonVariants({ variant: "outline", size: "default" }),
@@ -55,7 +76,7 @@ export function DateRangePicker({ onApply, onClose }: DateRangePickerProps) {
               <Calendar
                 mode="single"
                 selected={startDate}
-                onSelect={setStartDate}
+                onSelect={handleSelectStart}
                 initialFocus
               />
             </PopoverContent>
@@ -63,7 +84,8 @@ export function DateRangePicker({ onApply, onClose }: DateRangePickerProps) {
 
           <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
 
-          <Popover>
+          {/* Tanggal Akhir */}
+          <Popover open={endOpen} onOpenChange={setEndOpen}>
             <PopoverTrigger 
               className={cn(
                 buttonVariants({ variant: "outline", size: "default" }),
@@ -79,7 +101,7 @@ export function DateRangePicker({ onApply, onClose }: DateRangePickerProps) {
               <Calendar
                 mode="single"
                 selected={endDate}
-                onSelect={setEndDate}
+                onSelect={handleSelectEnd}
                 disabled={(date) => (startDate ? date < startDate : false)}
                 initialFocus
               />
