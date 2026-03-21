@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTransactions, createTransaction, deleteTransaction } from "@/app/(dashboard)/transactions/actions";
 import { FilterState } from "@/app/(dashboard)/transactions/filter-bar";
+import { accountKeys } from "@/queries/accounts";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -99,8 +100,8 @@ export function useCreateTransaction() {
     },
     onSuccess: () => {
       toast.success("Transaksi berhasil ditambahkan", { duration: 1500 });
-      // Invalidate semua query transactions agar re-fetch
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all }); // saldo akun berubah
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: (error: Error) => {
@@ -148,6 +149,8 @@ export function useDeleteTransaction() {
     },
     onSuccess: () => {
       toast.success("Transaksi berhasil dihapus", { duration: 1500 });
+      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all }); // saldo akun berubah
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
