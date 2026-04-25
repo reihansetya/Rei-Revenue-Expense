@@ -6,6 +6,7 @@ import { SpendingPieChart } from "@/components/dashboard/spending-pie-chart";
 import { MonthlyBarChart } from "@/components/dashboard/monthly-bar-chart";
 import { DailyTrendChart } from "@/components/dashboard/daily-trend-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
+import { BudgetProgress } from "@/components/dashboard/budget-progress";
 import { useDashboard } from "@/queries/dashboard";
 import { format, addMonths } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -21,16 +22,24 @@ export default function DashboardPage() {
   const { data, isLoading, error } = useDashboard(currentMonth);
 
   const handlePreviousMonth = () => {
-    setCurrentMonth((prev) => format(addMonths(new Date(prev + "-01"), -1), "yyyy-MM"));
+    setCurrentMonth((prev) =>
+      format(addMonths(new Date(prev + "-01"), -1), "yyyy-MM"),
+    );
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth((prev) => format(addMonths(new Date(prev + "-01"), 1), "yyyy-MM"));
+    setCurrentMonth((prev) =>
+      format(addMonths(new Date(prev + "-01"), 1), "yyyy-MM"),
+    );
   };
 
-  const currentMonthLabel = format(new Date(currentMonth + "-01"), "MMMM yyyy", {
-    locale: localeId,
-  });
+  const currentMonthLabel = format(
+    new Date(currentMonth + "-01"),
+    "MMMM yyyy",
+    {
+      locale: localeId,
+    },
+  );
 
   if (error) {
     return (
@@ -84,6 +93,9 @@ export default function DashboardPage() {
         />
         <MonthlyBarChart data={data.monthlyTrend} />
       </div>
+
+      {/* Budget Progress (Only shows if budget is set) */}
+      <BudgetProgress data={data.spendingByCategory} />
 
       {/* Charts Row 2: Line Chart */}
       <DailyTrendChart data={data.dailyData} />

@@ -17,12 +17,14 @@ import {
 } from "lucide-react";
 import { AccountFormDialog } from "./account-form-dialog";
 import { UpdateBalanceDialog } from "./update-balance-dialog";
+import { UpdateWalletBalanceDialog } from "./update-wallet-balance-dialog";
 import { toast } from "sonner";
 import { FormattedCurrency } from "@/components/ui/formatted-currency";
 import {
   useAccounts,
   useDeleteAccount,
   useUpdateInvestmentBalance,
+  useUpdateWalletBalance,
   useCreateAccount,
   useUpdateAccount,
 } from "@/queries/accounts";
@@ -52,12 +54,15 @@ export function AccountsList({
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [updateBalanceAccount, setUpdateBalanceAccount] =
     useState<Account | null>(null);
+  const [updateWalletBalanceAccount, setUpdateWalletBalanceAccount] =
+    useState<Account | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
 
   // TanStack Query — gunakan initialAccounts sebagai data awal (SSR hydration)
   const { data: accounts = initialAccounts } = useAccounts();
   const deleteMutation = useDeleteAccount();
   const updateBalanceMutation = useUpdateInvestmentBalance();
+  const updateWalletBalanceMutation = useUpdateWalletBalance();
   const createAccountMutation = useCreateAccount();
   const updateAccountMutation = useUpdateAccount();
 
@@ -153,6 +158,25 @@ export function AccountsList({
         {
           onSuccess: () => {
             setUpdateBalanceAccount(null);
+            resolve();
+          },
+          onError: () => resolve(),
+        },
+      );
+    });
+  }
+
+  async function handleUpdateWalletBalance(
+    accountId: string,
+    newBalance: number,
+    notes: string,
+  ) {
+    return new Promise<void>((resolve) => {
+      updateWalletBalanceMutation.mutate(
+        { accountId, newBalance, notes: notes || undefined },
+        {
+          onSuccess: () => {
+            setUpdateWalletBalanceAccount(null);
             resolve();
           },
           onError: () => resolve(),
@@ -272,7 +296,18 @@ export function AccountsList({
                         size="icon"
                         className="h-8 w-8 text-purple-500 hover:text-purple-700"
                         onClick={() => setUpdateBalanceAccount(account)}
-                        title="Update Saldo"
+                        title="Update Saldo Investasi"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {account.type !== "investment" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-500 hover:text-blue-700"
+                        onClick={() => setUpdateWalletBalanceAccount(account)}
+                        title="Koreksi Saldo"
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
                       </Button>
@@ -338,6 +373,13 @@ export function AccountsList({
         account={updateBalanceAccount}
         onClose={() => setUpdateBalanceAccount(null)}
         onUpdate={handleUpdateBalance}
+      />
+
+      <UpdateWalletBalanceDialog
+        open={!!updateWalletBalanceAccount}
+        account={updateWalletBalanceAccount}
+        onClose={() => setUpdateWalletBalanceAccount(null)}
+        onUpdate={handleUpdateWalletBalance}
       />
     </>
   );

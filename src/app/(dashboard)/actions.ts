@@ -52,14 +52,14 @@ export async function getDashboardData(month?: string) {
   // 3. Spending by category
   const { data: categorySpending } = await supabase
     .from("transactions")
-    .select("amount, categories(name, icon, color)")
+    .select("amount, categories(name, icon, color, budget)")
     .eq("user_id", user.id)
     .eq("type", "expense")
     .gte("date", format(monthStart, "yyyy-MM-dd"))
     .lte("date", format(monthEnd, "yyyy-MM-dd"));
 
   // Group by category
-  const categoryMap: Record<string, { name: string; icon: string; color: string; total: number }> = {};
+  const categoryMap: Record<string, { name: string; icon: string; color: string; total: number; budget: number | null }> = {};
   (categorySpending || []).forEach((t: any) => {
     const catName = t.categories?.name || "Lainnya";
     if (!categoryMap[catName]) {
@@ -67,6 +67,7 @@ export async function getDashboardData(month?: string) {
         name: catName,
         icon: t.categories?.icon || "📦",
         color: t.categories?.color || "#6B7280",
+        budget: t.categories?.budget || null,
         total: 0,
       };
     }

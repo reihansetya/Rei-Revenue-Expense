@@ -109,6 +109,95 @@ export async function deleteAccount(id: string) {
   return { success: true };
 }
 
+export async function updateWalletBalance(
+  accountId: string,
+  newBalance: number,
+  notes?: string,
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated" };
+
+  // 1. Ambil saldo lama
+  const { data: account, error: fetchError } = await supabase
+    .from("accounts")
+    .select("balance, type")
+    .eq("id", accountId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !account) return { error: "Akun tidak ditemukan" };
+
+  const oldBalance = Number(account.balance);
+  const difference = newBalance - oldBalance;
+
+  // Tidak ada perubahan — skip
+  if (difference === 0) return { success: true, noChange: true };
+
+  const transactionType = difference > 0 ? "income" : "expense";
+  const amount = Math.abs(difference);
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+  // 2. Cari atau buat kategori "Balancing"
+  //    income → balancing income, expense → balancing expense
+  const { data: existingCategory } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("name", "Balancing")
+    .eq("type", transactionType)
+    .maybeSingle();
+
+  let categoryId: string | null = existingCategory?.id ?? null;
+
+  if (!categoryId) {
+    const { data: newCategory, error: catError } = await supabase
+      .from("categories")
+      .insert({
+        user_id: user.id,
+        name: "Balancing",
+        type: transactionType,
+        icon: "scale",
+        color: "#8B5CF6",
+      })
+      .select("id")
+      .single();
+
+    if (catError) {
+      console.error("Gagal membuat kategori Balancing:", catError);
+      // Lanjut tanpa kategori daripada gagal total
+    } else {
+      categoryId = newCategory?.id ?? null;
+    }
+  }
+
+  // 3. Insert transaksi — trigger DB akan otomatis update saldo akun
+  const description = notes
+    ? `Balancing: ${notes}`
+    : `Penyesuaian saldo (${transactionType === "income" ? "+" : "-"}${amount.toLocaleString("id-ID")})`;
+
+  const { error: txError } = await supabase.from("transactions").insert({
+    user_id: user.id,
+    account_id: accountId,
+    category_id: categoryId,
+    type: transactionType,
+    amount,
+    description,
+    date: today,
+    source: "web",
+  });
+
+  if (txError) return { error: txError.message };
+
+  revalidatePath("/accounts");
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  return { success: true };
+}
+
 export async function updateInvestmentBalance(
   accountId: string,
   newBalance: number,

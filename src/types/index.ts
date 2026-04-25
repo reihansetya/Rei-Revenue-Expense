@@ -33,6 +33,7 @@ export interface Category {
   icon: string;
   color: string;
   is_default: boolean;
+  budget?: number;
   created_at: string;
 }
 

@@ -5,6 +5,7 @@ import {
   updateAccount,
   deleteAccount,
   updateInvestmentBalance,
+  updateWalletBalance,
 } from "@/app/(dashboard)/accounts/actions";
 import { Account } from "@/types";
 import { toast } from "sonner";
@@ -127,6 +128,39 @@ export function useUpdateInvestmentBalance() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Gagal mengupdate saldo investasi");
+    },
+  });
+}
+
+export function useUpdateWalletBalance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      accountId,
+      newBalance,
+      notes,
+    }: {
+      accountId: string;
+      newBalance: number;
+      notes?: string;
+    }) => {
+      const result = await updateWalletBalance(accountId, newBalance, notes);
+      if (result?.error) throw new Error(result.error);
+      return result;
+    },
+    onSuccess: (data) => {
+      if (data && 'noChange' in data && data.noChange) {
+        toast.info("Saldo tidak berubah", { duration: 1500 });
+        return;
+      }
+      toast.success("Saldo berhasil diperbarui", { duration: 1500 });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Gagal memperbarui saldo dompet");
     },
   });
 }

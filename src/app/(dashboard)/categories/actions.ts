@@ -38,6 +38,8 @@ export async function createCategory(formData: FormData) {
   const type = formData.get("type") as string;
   const icon = formData.get("icon") as string || "tag";
   const color = formData.get("color") as string || "#3B82F6";
+  const budgetStr = formData.get("budget");
+  const budget = budgetStr ? Number(budgetStr) : null;
 
   const { error } = await supabase.from("categories").insert({
     user_id: user.id,
@@ -45,6 +47,7 @@ export async function createCategory(formData: FormData) {
     type,
     icon,
     color,
+    budget,
   });
 
   if (error) {
@@ -68,10 +71,12 @@ export async function updateCategory(id: string, formData: FormData) {
   const type = formData.get("type") as string;
   const icon = formData.get("icon") as string || "tag";
   const color = formData.get("color") as string || "#3B82F6";
+  const budgetStr = formData.get("budget");
+  const budget = budgetStr ? Number(budgetStr) : null;
 
   const { error } = await supabase
     .from("categories")
-    .update({ name, type, icon, color })
+    .update({ name, type, icon, color, budget })
     .eq("id", id)
     .eq("user_id", user.id);
 

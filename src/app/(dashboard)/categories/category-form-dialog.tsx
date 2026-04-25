@@ -66,6 +66,7 @@ export function CategoryFormDialog({
   const [selectedColor, setSelectedColor] = useState(
     defaultValues?.color || "#3B82F6",
   );
+  const [selectedType, setSelectedType] = useState(defaultValues?.type || "expense");
 
   if (!open) return null;
 
@@ -98,7 +99,7 @@ export function CategoryFormDialog({
 
           <div className="space-y-2">
             <Label htmlFor="type">Tipe</Label>
-            <Select name="type" defaultValue={defaultValues?.type || "expense"}>
+            <Select name="type" defaultValue={selectedType} onValueChange={setSelectedType}>
               <SelectTrigger>
                 <SelectValue placeholder="Pilih tipe" />
               </SelectTrigger>
@@ -108,6 +109,20 @@ export function CategoryFormDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {selectedType === "expense" && (
+            <div className="space-y-2">
+              <Label htmlFor="budget">Anggaran Bulanan (Opsional)</Label>
+              <Input
+                id="budget"
+                name="budget"
+                type="number"
+                placeholder="Contoh: 1500000"
+                defaultValue={defaultValues?.budget}
+              />
+              <p className="text-xs text-muted-foreground">Isi untuk memantau batas pengeluaran kategori ini per bulan.</p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Icon</Label>
