@@ -99,7 +99,7 @@ export function CategoryFormDialog({
 
           <div className="space-y-2">
             <Label htmlFor="type">Tipe</Label>
-            <Select name="type" defaultValue={selectedType} onValueChange={setSelectedType}>
+            <Select name="type" defaultValue={selectedType} onValueChange={(value) => value && setSelectedType(value as "income" | "expense")}>
               <SelectTrigger>
                 <SelectValue placeholder="Pilih tipe" />
               </SelectTrigger>
