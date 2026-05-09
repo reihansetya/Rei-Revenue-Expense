@@ -163,13 +163,7 @@ export function UpdateWalletBalanceDialog({
                   <p className="font-bold tabular-nums">{formatCurrency(newBalanceNum)}</p>
                 </div>
               </div>
-              {txLabel && difference !== 0 && (
-                <div className="mt-3 pt-3 border-t border-inherit">
-                  <p className="text-xs text-muted-foreground mb-1">Transaksi yang akan dibuat:</p>
-                  <p className={`text-sm font-semibold ${txColor}`}>📋 {txLabel}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Kategori: Balancing</p>
-                </div>
-              )}
+            
             </div>
           )}
 
