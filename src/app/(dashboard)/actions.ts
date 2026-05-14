@@ -29,6 +29,12 @@ export async function getDashboardData(month?: string) {
   const walletBalance = (accounts || [])
     .filter((a) => a.type !== "investment")
     .reduce((sum, acc) => sum + Number(acc.balance), 0);
+  const cashBalance = (accounts || [])
+    .filter((a) => a.type === "cash")
+    .reduce((sum, acc) => sum + Number(acc.balance), 0);
+  const digitalBalance = (accounts || [])
+    .filter((a) => a.type === "bank" || a.type === "ewallet")
+    .reduce((sum, acc) => sum + Number(acc.balance), 0);
   const investmentBalance = (accounts || [])
     .filter((a) => a.type === "investment")
     .reduce((sum, acc) => sum + Number(acc.balance), 0);
@@ -149,6 +155,8 @@ export async function getDashboardData(month?: string) {
   return {
     totalBalance,
     walletBalance,
+    cashBalance,
+    digitalBalance,
     investmentBalance,
     monthlyIncome,
     monthlyExpense,

@@ -77,7 +77,19 @@ export function AccountsList({
   const investmentAccounts = sortedAccounts.filter(
     (a) => a.type === "investment",
   );
+  const cashAccounts = sortedAccounts.filter((a) => a.type === "cash");
+  const digitalAccounts = sortedAccounts.filter(
+    (a) => a.type === "bank" || a.type === "ewallet",
+  );
   const walletBalance = walletAccounts.reduce(
+    (sum, a) => sum + Number(a.balance),
+    0,
+  );
+  const cashBalance = cashAccounts.reduce(
+    (sum, a) => sum + Number(a.balance),
+    0,
+  );
+  const digitalBalance = digitalAccounts.reduce(
     (sum, a) => sum + Number(a.balance),
     0,
   );
@@ -194,15 +206,16 @@ export function AccountsList({
   return (
     <>
       {/* Balance Summary */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Total Saldo</p>
               <FormattedCurrency
                 amount={totalBalance}
-                className="text-2xl font-bold"
+                className="text-2xl font-bold text-white"
               />
+              <p className="text-xs text-muted-foreground">Semua akun</p>
             </div>
             <Wallet className="h-8 w-8 text-muted-foreground" />
           </CardContent>
@@ -213,13 +226,41 @@ export function AccountsList({
               <p className="text-sm text-muted-foreground">Dompet</p>
               <FormattedCurrency
                 amount={walletBalance}
-                className="text-2xl font-bold"
+                className="text-2xl font-bold text-white"
+              />
+              <p className="text-xs text-muted-foreground">Cash + Digital</p>
+            </div>
+            <Wallet className="h-8 w-8 text-cyan-400" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center justify-between p-6">
+            <div>
+              <p className="text-sm text-muted-foreground">Dompet Cash</p>
+              <FormattedCurrency
+                amount={cashBalance}
+                className="text-2xl font-bold text-white"
               />
               <p className="text-xs text-muted-foreground">
-                {walletAccounts.length} E-Wallet
+                {cashAccounts.length} akun tunai
               </p>
             </div>
-            <Wallet className="h-8 w-8 text-blue-400" />
+            <Banknote className="h-8 w-8 text-green-400" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center justify-between p-6">
+            <div>
+              <p className="text-sm text-muted-foreground">Dompet Digital</p>
+              <FormattedCurrency
+                amount={digitalBalance}
+                className="text-2xl font-bold text-white"
+              />
+              <p className="text-xs text-muted-foreground">
+                {digitalAccounts.length} Bank & E-Wallet
+              </p>
+            </div>
+            <Smartphone className="h-8 w-8 text-blue-400" />
           </CardContent>
         </Card>
         <Card>
@@ -228,10 +269,10 @@ export function AccountsList({
               <p className="text-sm text-muted-foreground">Investasi</p>
               <FormattedCurrency
                 amount={investmentBalance}
-                className="text-2xl font-bold text-purple-600"
+                className="text-2xl font-bold text-white"
               />
               <p className="text-xs text-muted-foreground">
-                {investmentAccounts.length} Investasi
+                {investmentAccounts.length} akun investasi
               </p>
             </div>
             <TrendingUp className="h-8 w-8 text-purple-400" />

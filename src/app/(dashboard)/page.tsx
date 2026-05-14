@@ -79,6 +79,8 @@ export default function DashboardPage() {
       <SummaryCards
         totalBalance={data.totalBalance}
         walletBalance={data.walletBalance}
+        cashBalance={data.cashBalance}
+        digitalBalance={data.digitalBalance}
         investmentBalance={data.investmentBalance}
         monthlyIncome={data.monthlyIncome}
         monthlyExpense={data.monthlyExpense}

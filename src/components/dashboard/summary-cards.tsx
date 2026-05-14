@@ -4,13 +4,16 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   TrendingUp,
-  PiggyBank,
+  Banknote,
+  Smartphone,
 } from "lucide-react";
 import { FormattedCurrency } from "@/components/ui/formatted-currency";
 
 interface SummaryCardsProps {
   totalBalance: number;
   walletBalance: number;
+  cashBalance: number;
+  digitalBalance: number;
   investmentBalance: number;
   monthlyIncome: number;
   monthlyExpense: number;
@@ -20,6 +23,8 @@ interface SummaryCardsProps {
 export function SummaryCards({
   totalBalance,
   walletBalance,
+  cashBalance,
+  digitalBalance,
   investmentBalance,
   monthlyIncome,
   monthlyExpense,
@@ -27,56 +32,86 @@ export function SummaryCards({
 }: SummaryCardsProps) {
   return (
     <div className="flex flex-col gap-4">
-      {/* Balance Breakdown */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Total Saldo — full width */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Saldo</CardTitle>
+          <Wallet className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <FormattedCurrency
+            amount={totalBalance}
+            className="text-2xl font-bold text-white"
+          />
+          <p className="text-xs text-muted-foreground">Semua akun</p>
+        </CardContent>
+      </Card>
+
+      {/* Dompet — full width */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Dompet</CardTitle>
+          <Wallet className="h-4 w-4 text-cyan-500" />
+        </CardHeader>
+        <CardContent>
+          <FormattedCurrency
+            amount={walletBalance}
+            className="text-2xl font-bold text-white"
+          />
+          <p className="text-xs text-muted-foreground">Cash + Digital</p>
+        </CardContent>
+      </Card>
+
+      {/* Dompet Cash | Dompet Digital — side by side */}
+      <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Saldo</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Dompet Cash</CardTitle>
+            <Banknote className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <FormattedCurrency
-              amount={totalBalance}
-              className="text-2xl font-bold"
+              amount={cashBalance}
+              className="text-2xl font-bold text-white"
             />
+            <p className="text-xs text-muted-foreground">Uang tunai</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dompet</CardTitle>
-            <Wallet className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium">Dompet Digital</CardTitle>
+            <Smartphone className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <FormattedCurrency
-              amount={walletBalance}
-              className="text-2xl font-bold"
+              amount={digitalBalance}
+              className="text-2xl font-bold text-white"
             />
-            <p className="text-xs text-muted-foreground">
-              Bank, E-Wallet, Cash
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Investasi</CardTitle>
-            <TrendingUp className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <FormattedCurrency
-              amount={investmentBalance}
-              className="text-2xl font-bold text-purple-600"
-            />
-            <p className="text-xs text-muted-foreground">
-              Saham, Reksadana, Crypto
-            </p>
+            <p className="text-xs text-muted-foreground">Bank & E-Wallet</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Monthly Summary */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* Investasi — full width */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Investasi</CardTitle>
+          <TrendingUp className="h-4 w-4 text-purple-500" />
+        </CardHeader>
+        <CardContent>
+          <FormattedCurrency
+            amount={investmentBalance}
+            className="text-2xl font-bold text-white"
+          />
+          <p className="text-xs text-muted-foreground">
+            Saham, Reksadana, Crypto
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Pemasukan | Pengeluaran — side by side */}
+      <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
