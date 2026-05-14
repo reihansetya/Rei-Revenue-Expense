@@ -207,7 +207,8 @@ export function AccountsList({
     <>
       {/* Balance Summary */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
-        <Card>
+        {/* Total Saldo — full width mobile, 1 col desktop */}
+        <Card className="col-span-2 md:col-span-1">
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Total Saldo</p>
@@ -220,7 +221,8 @@ export function AccountsList({
             <Wallet className="h-8 w-8 text-muted-foreground" />
           </CardContent>
         </Card>
-        <Card>
+        {/* Dompet — full width mobile, 1 col desktop */}
+        <Card className="col-span-2 md:col-span-1">
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Dompet</p>
@@ -233,7 +235,8 @@ export function AccountsList({
             <Wallet className="h-8 w-8 text-cyan-400" />
           </CardContent>
         </Card>
-        <Card>
+        {/* Dompet Cash — selalu setengah (col-span-1) */}
+        <Card className="col-span-1">
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Dompet Cash</p>
@@ -248,7 +251,8 @@ export function AccountsList({
             <Banknote className="h-8 w-8 text-green-400" />
           </CardContent>
         </Card>
-        <Card>
+        {/* Dompet Digital — selalu setengah (col-span-1) */}
+        <Card className="col-span-1">
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Dompet Digital</p>
@@ -263,7 +267,8 @@ export function AccountsList({
             <Smartphone className="h-8 w-8 text-blue-400" />
           </CardContent>
         </Card>
-        <Card>
+        {/* Investasi — full width mobile, 1 col desktop */}
+        <Card className="col-span-2 md:col-span-1">
           <CardContent className="flex items-center justify-between p-6">
             <div>
               <p className="text-sm text-muted-foreground">Investasi</p>
