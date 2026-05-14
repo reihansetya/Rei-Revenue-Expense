@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Account } from "@/types";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -209,78 +209,78 @@ export function AccountsList({
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
         {/* Total Saldo — full width mobile, 1 col desktop */}
         <Card className="col-span-2 md:col-span-1">
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Saldo</p>
-              <FormattedCurrency
-                amount={totalBalance}
-                className="text-2xl font-bold text-white"
-              />
-              <p className="text-xs text-muted-foreground">Semua akun</p>
-            </div>
-            <Wallet className="h-8 w-8 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Saldo</CardTitle>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <FormattedCurrency
+              amount={totalBalance}
+              className="text-2xl font-bold text-white"
+            />
+            <p className="text-xs text-muted-foreground">Semua akun</p>
           </CardContent>
         </Card>
         {/* Dompet — full width mobile, 1 col desktop */}
         <Card className="col-span-2 md:col-span-1">
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Dompet</p>
-              <FormattedCurrency
-                amount={walletBalance}
-                className="text-2xl font-bold text-white"
-              />
-              <p className="text-xs text-muted-foreground">Cash + Digital</p>
-            </div>
-            <Wallet className="h-8 w-8 text-cyan-400" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Dompet</CardTitle>
+            <Wallet className="h-4 w-4 text-cyan-400" />
+          </CardHeader>
+          <CardContent>
+            <FormattedCurrency
+              amount={walletBalance}
+              className="text-2xl font-bold text-white"
+            />
+            <p className="text-xs text-muted-foreground">Cash + Digital</p>
           </CardContent>
         </Card>
         {/* Dompet Cash — selalu setengah (col-span-1) */}
         <Card className="col-span-1">
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Dompet Cash</p>
-              <FormattedCurrency
-                amount={cashBalance}
-                className="text-base md:text-xl font-bold text-white truncate"
-              />
-              <p className="text-xs text-muted-foreground">
-                {cashAccounts.length} akun tunai
-              </p>
-            </div>
-            <Banknote className="h-5 w-5 md:h-8 md:w-8 text-green-400 shrink-0 ml-1" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium">Dompet Cash</CardTitle>
+            <Banknote className="h-4 w-4 text-green-400 shrink-0" />
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <FormattedCurrency
+              amount={cashBalance}
+              className="text-base md:text-xl font-bold text-white truncate"
+            />
+            <p className="text-xs text-muted-foreground">
+              {cashAccounts.length} akun tunai
+            </p>
           </CardContent>
         </Card>
         {/* Dompet Digital — selalu setengah (col-span-1) */}
         <Card className="col-span-1">
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Dompet Digital</p>
-              <FormattedCurrency
-                amount={digitalBalance}
-                className="text-base md:text-xl font-bold text-white truncate"
-              />
-              <p className="text-xs text-muted-foreground">
-                {digitalAccounts.length} Bank & E-Wallet
-              </p>
-            </div>
-            <Smartphone className="h-5 w-5 md:h-8 md:w-8 text-blue-400 shrink-0 ml-1" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium">Dompet Digital</CardTitle>
+            <Smartphone className="h-4 w-4 text-blue-400 shrink-0" />
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <FormattedCurrency
+              amount={digitalBalance}
+              className="text-base md:text-xl font-bold text-white truncate"
+            />
+            <p className="text-xs text-muted-foreground">
+              {digitalAccounts.length} Bank & E-Wallet
+            </p>
           </CardContent>
         </Card>
         {/* Investasi — full width mobile, 1 col desktop */}
         <Card className="col-span-2 md:col-span-1">
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Investasi</p>
-              <FormattedCurrency
-                amount={investmentBalance}
-                className="text-2xl font-bold text-white"
-              />
-              <p className="text-xs text-muted-foreground">
-                {investmentAccounts.length} akun investasi
-              </p>
-            </div>
-            <TrendingUp className="h-8 w-8 text-purple-400" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Investasi</CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <FormattedCurrency
+              amount={investmentBalance}
+              className="text-2xl font-bold text-white"
+            />
+            <p className="text-xs text-muted-foreground">
+              {investmentAccounts.length} akun investasi
+            </p>
           </CardContent>
         </Card>
       </div>
