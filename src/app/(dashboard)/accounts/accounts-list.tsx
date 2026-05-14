@@ -237,34 +237,34 @@ export function AccountsList({
         </Card>
         {/* Dompet Cash — selalu setengah (col-span-1) */}
         <Card className="col-span-1">
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Dompet Cash</p>
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Dompet Cash</p>
               <FormattedCurrency
                 amount={cashBalance}
-                className="text-2xl font-bold text-white"
+                className="text-base md:text-xl font-bold text-white truncate"
               />
               <p className="text-xs text-muted-foreground">
                 {cashAccounts.length} akun tunai
               </p>
             </div>
-            <Banknote className="h-8 w-8 text-green-400" />
+            <Banknote className="h-5 w-5 md:h-8 md:w-8 text-green-400 shrink-0 ml-1" />
           </CardContent>
         </Card>
         {/* Dompet Digital — selalu setengah (col-span-1) */}
         <Card className="col-span-1">
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Dompet Digital</p>
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Dompet Digital</p>
               <FormattedCurrency
                 amount={digitalBalance}
-                className="text-2xl font-bold text-white"
+                className="text-base md:text-xl font-bold text-white truncate"
               />
               <p className="text-xs text-muted-foreground">
                 {digitalAccounts.length} Bank & E-Wallet
               </p>
             </div>
-            <Smartphone className="h-8 w-8 text-blue-400" />
+            <Smartphone className="h-5 w-5 md:h-8 md:w-8 text-blue-400 shrink-0 ml-1" />
           </CardContent>
         </Card>
         {/* Investasi — full width mobile, 1 col desktop */}

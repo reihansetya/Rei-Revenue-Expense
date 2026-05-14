@@ -65,28 +65,28 @@ export function SummaryCards({
       {/* Dompet Cash | Dompet Digital — side by side */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dompet Cash</CardTitle>
-            <Banknote className="h-4 w-4 text-green-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium">Dompet Cash</CardTitle>
+            <Banknote className="h-4 w-4 text-green-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <FormattedCurrency
               amount={cashBalance}
-              className="text-2xl font-bold text-white"
+              className="text-base md:text-xl font-bold text-white truncate"
             />
             <p className="text-xs text-muted-foreground">Uang tunai</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dompet Digital</CardTitle>
-            <Smartphone className="h-4 w-4 text-blue-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium">Dompet Digital</CardTitle>
+            <Smartphone className="h-4 w-4 text-blue-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <FormattedCurrency
               amount={digitalBalance}
-              className="text-2xl font-bold text-white"
+              className="text-base md:text-xl font-bold text-white truncate"
             />
             <p className="text-xs text-muted-foreground">Bank & E-Wallet</p>
           </CardContent>
@@ -113,32 +113,32 @@ export function SummaryCards({
       {/* Pemasukan | Pengeluaran — side by side */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
-            <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium">Pemasukan</CardTitle>
+            <ArrowUpCircle className="h-4 w-4 text-emerald-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <FormattedCurrency
               amount={monthlyIncome}
               showSign
               sign="+"
-              className="text-2xl font-bold text-emerald-500"
+              className="text-base md:text-xl font-bold text-emerald-500 truncate"
             />
             <p className="text-xs text-muted-foreground">{currentMonth}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
-            <ArrowDownCircle className="h-4 w-4 text-rose-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium">Pengeluaran</CardTitle>
+            <ArrowDownCircle className="h-4 w-4 text-rose-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <FormattedCurrency
               amount={monthlyExpense}
               showSign
               sign="-"
-              className="text-2xl font-bold text-rose-500"
+              className="text-base md:text-xl font-bold text-rose-500 truncate"
             />
             <p className="text-xs text-muted-foreground">{currentMonth}</p>
           </CardContent>
