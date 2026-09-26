@@ -41,11 +41,3 @@ export function getCurrentMonthRange() {
     .split("T")[0];
   return { start, end };
 }
-
-// Generate random token
-export function generateToken(length = 32): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from({ length }, () =>
-    chars.charAt(Math.floor(Math.random() * chars.length))
-  ).join("");
-}

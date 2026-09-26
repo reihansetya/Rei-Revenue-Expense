@@ -81,8 +81,8 @@ function extractAccountsAndDescription(
 } {
   let lower = message.toLowerCase().trim();
 
-  // Remove transfer keyword
-  lower = lower.replace(/^(\/transfer|transfer)\s+/, "").trim();
+  // Remove transfer keyword (same keywords that route a message to transfer)
+  lower = lower.replace(/^(\/transfer|transfer|pindah|move)\s+/, "").trim();
 
   // Case 1: Format "dari X ke Y"
   const dariKePattern = /dari\s+(\w+)\s+ke\s+(\w+)/i;

@@ -4,10 +4,11 @@ import {
   parseAmount,
   formatRupiah,
   getCurrentMonthRange,
-  generateToken,
 } from "./utils";
+import { getTransferType } from "../utils";
 import {
   classifyMessage,
+  isTransferMessage,
   parseTransaction,
   parseQuery,
   parseTransfer,
@@ -114,8 +115,60 @@ function findCategory(categories: any[], type: string, query: string) {
   return match;
 }
 
+// Deep link from web Settings: t.me/<bot>?start=<token>
+async function linkTelegramAccount(ctx: Context, token: string) {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .eq("link_token", token)
+    .gt("link_token_expires_at", new Date().toISOString())
+    .maybeSingle();
+
+  if (!profile) {
+    await ctx.reply(
+      "❌ Link tidak valid atau sudah kedaluwarsa.\n\nBuat link baru dari menu Settings di web.",
+    );
+    return;
+  }
+
+  // Telegram ID comes from Telegram itself; the token is single-use
+  const { error } = await supabase
+    .from("profiles")
+    .update({ telegram_id: telegramId, link_token: null, link_token_expires_at: null })
+    .eq("user_id", profile.user_id)
+    .eq("link_token", token);
+
+  if (error) {
+    // 23505 = unique violation: this Telegram account is already linked elsewhere
+    await ctx.reply(
+      error.code === "23505"
+        ? "❌ Akun Telegram ini sudah terhubung ke akun lain."
+        : "❌ Gagal menghubungkan akun. Coba lagi nanti.",
+    );
+    return;
+  }
+
+  // Show which account was linked so a link sent by someone else is noticed immediately
+  const { data: authData } = await supabase.auth.admin.getUserById(profile.user_id);
+  await ctx.reply(
+    `✅ Telegram terhubung ke akun ${authData.user?.email ?? "Anda"}.\n\n` +
+      `Kalau itu bukan email Anda, jangan catat transaksi di sini.\n\n` +
+      `Ketik /help untuk panduan.`,
+  );
+}
+
 // /start
 export async function handleStart(ctx: Context) {
+  const text = ctx.message && "text" in ctx.message ? ctx.message.text : "";
+  const linkToken = text.split(" ")[1];
+  if (linkToken) {
+    await linkTelegramAccount(ctx, linkToken);
+    return;
+  }
+
   const name = ctx.from?.first_name || "there";
   await ctx.reply(
     `👋 Halo ${name}!\n\n` +
@@ -181,17 +234,13 @@ export async function handleLink(ctx: Context) {
     return;
   }
 
-  const token = generateToken();
-
-  // Simple approach: encode telegramId di token
-  const linkToken = `${token}_${telegramId}`;
-
+  // Linking must start from the logged-in web session (see settings/actions.ts)
   await ctx.reply(
     `🔗 <b>Link Akun Telegram</b>\n\n` +
-      `Klik link berikut untuk menghubungkan akun:\n` +
-      `${APP_URL}/settings/link?token=${linkToken}\n\n` +
-      `⏰ Link berlaku <b>10 menit</b>\n` +
-      `❗ Jangan bagikan link ini ke siapapun`,
+      `1. Buka ${APP_URL}/settings dan login\n` +
+      `2. Klik <b>Hubungkan</b> di bagian Telegram Bot\n` +
+      `3. Tekan <b>Start</b> di bot ini\n\n` +
+      `⏰ Link berlaku <b>10 menit</b>`,
     { parse_mode: "HTML" },
   );
 }
@@ -514,7 +563,8 @@ async function showTransferConfirmation(
   );
 }
 
-// Helper: Execute transfer (simpan 2 transaksi dan update balances)
+// Helper: Execute transfer — same as the web: one row in `transfers`, balances are
+// updated by the on_transfer_created trigger, and it is not counted as income/expense
 async function executeTransfer(
   userId: string,
   srcAccountId: string,
@@ -522,102 +572,48 @@ async function executeTransfer(
   amount: number,
   description: string | null,
   date: string,
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    // 1. Get current balances
-    const [srcAcc, dstAcc] = await Promise.all([
-      supabase
-        .from("accounts")
-        .select("balance")
-        .eq("id", srcAccountId)
-        .single(),
-      supabase
-        .from("accounts")
-        .select("balance")
-        .eq("id", dstAccountId)
-        .single(),
-    ]);
+): Promise<{ success: boolean; error?: string; transferType?: string }> {
+  // Scoped to user_id: this client uses the service role and bypasses RLS
+  const { data: accounts, error: fetchError } = await supabase
+    .from("accounts")
+    .select("id, balance, type")
+    .in("id", [srcAccountId, dstAccountId])
+    .eq("user_id", userId);
 
-    if (srcAcc.error || !srcAcc.data) {
-      return { success: false, error: "Akun sumber tidak ditemukan" };
-    }
+  const srcAcc = accounts?.find((a) => a.id === srcAccountId);
+  const dstAcc = accounts?.find((a) => a.id === dstAccountId);
 
-    if (dstAcc.error || !dstAcc.data) {
-      return { success: false, error: "Akun tujuan tidak ditemukan" };
-    }
-
-    const srcBalance = Number(srcAcc.data.balance);
-    const dstBalance = Number(dstAcc.data.balance);
-
-    // 2. Validate balance
-    if (srcBalance < amount) {
-      return { success: false, error: "Saldo tidak mencukupi" };
-    }
-
-    // 3. Insert expense transaction (source account)
-    const { error: expenseError } = await supabase.from("transactions").insert({
-      user_id: userId,
-      type: "expense",
-      amount: amount,
-      description: description || `Transfer ke akun lain`,
-      date: date,
-      account_id: srcAccountId,
-      category_id: null, // Transfer tidak pakai kategori
-      source: "telegram",
-    });
-
-    if (expenseError) {
-      console.error("❌ Error inserting expense transaction:", expenseError);
-      return { success: false, error: "Gagal mencatat pengeluaran" };
-    }
-
-    // 4. Insert income transaction (destination account)
-    const { error: incomeError } = await supabase.from("transactions").insert({
-      user_id: userId,
-      type: "income",
-      amount: amount,
-      description: description || `Transfer dari akun lain`,
-      date: date,
-      account_id: dstAccountId,
-      category_id: null, // Transfer tidak pakai kategori
-      source: "telegram",
-    });
-
-    if (incomeError) {
-      console.error("❌ Error inserting income transaction:", incomeError);
-      return { success: false, error: "Gagal mencatat pemasukan" };
-    }
-
-    // 5. Update balances
-    const newSrcBalance = srcBalance - amount;
-    const newDstBalance = dstBalance + amount;
-
-    const [srcUpdate, dstUpdate] = await Promise.all([
-      supabase
-        .from("accounts")
-        .update({ balance: newSrcBalance })
-        .eq("id", srcAccountId),
-      supabase
-        .from("accounts")
-        .update({ balance: newDstBalance })
-        .eq("id", dstAccountId),
-    ]);
-
-    if (srcUpdate.error) {
-      console.error("❌ Error updating source balance:", srcUpdate.error);
-      return { success: false, error: "Gagal mengupdate saldo sumber" };
-    }
-
-    if (dstUpdate.error) {
-      console.error("❌ Error updating destination balance:", dstUpdate.error);
-      return { success: false, error: "Gagal mengupdate saldo tujuan" };
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error("❌ Transfer error:", error);
-    return { success: false, error: error.message || "Terjadi kesalahan" };
+  if (fetchError || !srcAcc) {
+    return { success: false, error: "Akun sumber tidak ditemukan" };
   }
+
+  if (!dstAcc) {
+    return { success: false, error: "Akun tujuan tidak ditemukan" };
+  }
+
+  if (Number(srcAcc.balance) < amount) {
+    return { success: false, error: "Saldo tidak mencukupi" };
+  }
+
+  const transferType = getTransferType(srcAcc.type, dstAcc.type);
+
+  const { error } = await supabase.from("transfers").insert({
+    user_id: userId,
+    from_account_id: srcAccountId,
+    to_account_id: dstAccountId,
+    amount,
+    description: description || null,
+    date,
+    source: "telegram",
+    transfer_type: transferType,
+  });
+
+  if (error) {
+    console.error("❌ Error inserting transfer:", error);
+    return { success: false, error: "Gagal mencatat transfer" };
+  }
+
+  return { success: true, transferType };
 }
 
 // Handler untuk pesan teks biasa (Menangkap input Wizard dan Natural Language)
@@ -685,9 +681,8 @@ export async function handleTextMessage(ctx: Context) {
   const messageType = classifyMessage(text);
   console.log(`🔎 Classified as: ${messageType}`);
 
-  // Handle transfer (check for transfer keywords)
-  const transferKeywords = ["transfer", "pindah", "move"];
-  if (transferKeywords.some((kw) => text.toLowerCase().includes(kw))) {
+  // Handle transfer (only when the message starts with a transfer keyword)
+  if (isTransferMessage(text)) {
     console.log(`💸 Processing as transfer...`);
     await handleNaturalLanguageTransfer(ctx, profile, text);
     return;
@@ -982,9 +977,17 @@ export async function handleCallback(ctx: Context) {
     // Hapus session
     await deleteTelegramSession(telegramId);
 
+    const typeLabel =
+      result.transferType === "investment"
+        ? "📈 Beli Investasi\n"
+        : result.transferType === "divestment"
+          ? "📉 Cairkan Investasi\n"
+          : "";
+
     await ctx.answerCbQuery("✅ Transfer berhasil!");
     await ctx.editMessageText(
       `✅ *Transfer Berhasil!*\n\n` +
+        typeLabel +
         `💵 Jumlah: *${formatRupiah(data.amount)}*\n` +
         `🏦 Dari: ${data.srcAccountName}\n` +
         `🏦 Ke: ${data.dstAccountName}\n` +

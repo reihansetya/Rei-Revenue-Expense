@@ -45,7 +45,7 @@ export type { ParsedQuery } from "./query";
 export type { ParsedTransfer } from "./transfer";
 
 // Re-export functions
-export { classifyMessage } from "./classifier";
+export { classifyMessage, isTransferMessage } from "./classifier";
 export {
   parseTransaction,
   matchCategoryToUserCategory,

@@ -3,6 +3,7 @@
 import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { Transfer } from "@/types";
+import { getTransferType } from "@/lib/utils";
 
 /**
  * Mengambil semua transfer milik user yang login
@@ -114,12 +115,7 @@ export async function createTransfer(formData: FormData): Promise<{
   }
 
   // Auto-detect transfer type berdasarkan tipe akun
-  let transfer_type = "regular";
-  if (fromAccount?.type !== "investment" && toAccount?.type === "investment") {
-    transfer_type = "investment"; // Pembelian investasi
-  } else if (fromAccount?.type === "investment" && toAccount?.type !== "investment") {
-    transfer_type = "divestment"; // Pencairan investasi
-  }
+  const transfer_type = getTransferType(fromAccount?.type, toAccount?.type);
 
   // Insert transfer (trigger akan otomatis update balance)
   const { error } = await supabase.from("transfers").insert({

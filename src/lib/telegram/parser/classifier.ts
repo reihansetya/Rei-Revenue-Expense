@@ -33,6 +33,15 @@ export function classifyMessage(message: string): MessageType {
 }
 
 /**
+ * Transfer only when the message starts with the keyword ("transfer 50k BCA GoPay").
+ * "bayar biaya transfer 6500" is a normal expense; "transfer masuk ..." is an income keyword.
+ */
+export function isTransferMessage(message: string): boolean {
+  const lower = message.toLowerCase().trim();
+  return /^(transfer|pindah|move)\b/.test(lower) && !lower.startsWith("transfer masuk");
+}
+
+/**
  * Cek apakah pesan adalah query
  */
 function isQueryMessage(lower: string): boolean {

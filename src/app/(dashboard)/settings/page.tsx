@@ -2,11 +2,13 @@ import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Button } from "@/components/ui/button";
+import { createTelegramLink } from "./actions";
 
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; error?: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const supabase = await createClient();
   const user = await getAuthUser(supabase);
@@ -22,7 +24,7 @@ export default async function SettingsPage({
     .eq("user_id", user.id)
     .single();
 
-  const { success, error } = await searchParams;
+  const { error } = await searchParams;
 
   return (
     <div className="flex flex-col gap-6">
@@ -30,22 +32,7 @@ export default async function SettingsPage({
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
       </div>
 
-      {/* Toast-style notification untuk link result */}
-      {success === "telegram_linked" && (
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">
-          ✅ Akun Telegram berhasil dihubungkan!
-        </div>
-      )}
-      {error === "already_linked" && (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          ❌ Akun Telegram ini sudah terhubung ke akun lain.
-        </div>
-      )}
-      {error === "invalid_token" && (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          ❌ Token tidak valid. Minta link baru dari bot.
-        </div>
-      )}
+      {/* Link success/errors are now reported by the bot; only link creation can fail here */}
       {error === "failed" && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           ❌ Gagal menghubungkan akun. Coba lagi nanti.
@@ -95,7 +82,7 @@ export default async function SettingsPage({
                 <p className="text-xs text-muted-foreground">
                   {profile?.telegram_id
                     ? `ID: ${profile.telegram_id}`
-                    : "Belum terhubung — gunakan /link di bot"}
+                    : "Belum terhubung — klik Hubungkan, lalu tekan Start di bot"}
                 </p>
               </div>
               {profile?.telegram_id ? (
@@ -103,9 +90,11 @@ export default async function SettingsPage({
                   ✅ Connected
                 </span>
               ) : (
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                  Gunakan /link di bot
-                </span>
+                <form action={createTelegramLink}>
+                  <Button type="submit" size="sm">
+                    Hubungkan
+                  </Button>
+                </form>
               )}
             </div>
           </CardContent>
