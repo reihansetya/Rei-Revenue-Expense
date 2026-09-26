@@ -1,14 +1,12 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { InvestmentBalanceLog } from "@/types";
 
 export async function getAccounts() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return [];
 
@@ -28,9 +26,7 @@ export async function getAccounts() {
 
 export async function createAccount(formData: FormData) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Not authenticated" };
 
@@ -60,9 +56,7 @@ export async function createAccount(formData: FormData) {
 
 export async function updateAccount(id: string, formData: FormData) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Not authenticated" };
 
@@ -88,9 +82,7 @@ export async function updateAccount(id: string, formData: FormData) {
 
 export async function deleteAccount(id: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Not authenticated" };
 
@@ -115,9 +107,7 @@ export async function updateWalletBalance(
   notes?: string,
 ) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Not authenticated" };
 
@@ -204,9 +194,7 @@ export async function updateInvestmentBalance(
   notes?: string,
 ) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Not authenticated" };
 
@@ -253,9 +241,7 @@ export async function updateInvestmentBalance(
 
 export async function getInvestmentLogs(accountId?: string): Promise<InvestmentBalanceLog[]> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return [];
 

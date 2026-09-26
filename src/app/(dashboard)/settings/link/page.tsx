@@ -1,5 +1,5 @@
 // src/app/(dashboard)/settings/link/page.tsx
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export default async function LinkTelegramPage({
@@ -12,9 +12,7 @@ export default async function LinkTelegramPage({
   if (!token) redirect("/settings");
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
   if (!user) redirect("/login");
 
   // Parse token: format adalah `randomstring_telegramId`

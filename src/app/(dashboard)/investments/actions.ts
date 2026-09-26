@@ -1,13 +1,11 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import type { Account, InvestmentGainLoss } from "@/types";
 
 export async function getInvestmentAccounts(): Promise<Account[]> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return [];
 
@@ -24,9 +22,7 @@ export async function getInvestmentAccounts(): Promise<Account[]> {
 
 export async function getInvestmentGainLoss(): Promise<InvestmentGainLoss[]> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return [];
 

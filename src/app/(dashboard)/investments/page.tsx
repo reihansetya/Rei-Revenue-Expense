@@ -2,13 +2,11 @@ import { getInvestmentAccounts, getInvestmentGainLoss } from "./actions";
 import { getInvestmentLogs } from "@/app/(dashboard)/accounts/actions";
 import { InvestmentsList } from "./investments-list";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 
 export default async function InvestmentsPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) redirect("/login");
 

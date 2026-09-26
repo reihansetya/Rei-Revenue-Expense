@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { Transfer } from "@/types";
 
@@ -13,9 +13,7 @@ export async function getTransfers(filters?: {
   endDate?: string;
 }): Promise<Transfer[]> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return [];
 
@@ -71,9 +69,7 @@ export async function createTransfer(formData: FormData): Promise<{
   error?: string;
 }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Tidak terautentikasi" };
 
@@ -157,9 +153,7 @@ export async function deleteTransfer(id: string): Promise<{
   error?: string;
 }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Tidak terautentikasi" };
 

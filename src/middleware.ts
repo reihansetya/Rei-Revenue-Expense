@@ -31,9 +31,9 @@ export async function middleware(request: NextRequest) {
 
   // refresh session if expired - required for Server Components
   // https://supabase.com/docs/guides/auth/server-side/nextjs
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getClaims() verifies the JWT locally (ES256 JWKS) instead of calling Supabase Auth on every request
+  const { data } = await supabase.auth.getClaims()
+  const user = data?.claims
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
   const isApiRoute = request.nextUrl.pathname.startsWith('/api')

@@ -27,3 +27,14 @@ export async function createClient() {
     }
   )
 }
+
+// Verifies the JWT locally against the project's ES256 JWKS (cached per instance)
+// instead of a network round trip to Supabase Auth like auth.getUser().
+// ponytail: does not detect sessions revoked server-side until the JWT expires (default 1h).
+export async function getAuthUser(
+  supabase: Awaited<ReturnType<typeof createClient>>
+) {
+  const { data } = await supabase.auth.getClaims()
+  if (!data?.claims) return null
+  return { id: data.claims.sub, email: data.claims.email }
+}

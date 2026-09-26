@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function getTransactions(filters?: {
@@ -12,9 +12,7 @@ export async function getTransactions(filters?: {
   accountId?: string | string[];
 }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return [];
 
@@ -65,50 +63,50 @@ export async function getTransactions(filters?: {
 
 export async function getAvailableMonths() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return [];
 
-  const { data } = await supabase
+  // Only the oldest date is needed: scanning every row was slow and was silently
+  // truncated past PostgREST's 1000-row cap, dropping the oldest months.
+  const { data: oldest } = await supabase
     .from("transactions")
     .select("date")
     .eq("user_id", user.id)
-    .order("date", { ascending: false });
+    .order("date", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-  if (!data) return [];
+  if (!oldest) return [];
 
-  // Group by month-year
-  const monthsMap = new Map<string, { year: number; month: number }>();
+  // Months from the current month back to the oldest one, newest first
+  // (FilterBar relies on index 0 = this month and 1 = last month).
+  const oldestDate = new Date(oldest.date);
+  const oldestMonthStart = new Date(oldestDate.getFullYear(), oldestDate.getMonth(), 1);
+  const now = new Date();
+  const months = [];
 
-  data.forEach((t) => {
-    const date = new Date(t.date);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-
-    if (!monthsMap.has(key)) {
-      monthsMap.set(key, { year: date.getFullYear(), month: date.getMonth() });
-    }
-  });
-
-  const months = Array.from(monthsMap.entries()).map(([key, value]) => ({
-    key,
-    label: new Date(value.year, value.month).toLocaleDateString("id-ID", {
-      month: "long",
-      year: "numeric",
-    }),
-    year: value.year,
-    month: value.month,
-  }));
+  for (
+    let cursor = new Date(now.getFullYear(), now.getMonth(), 1);
+    cursor >= oldestMonthStart;
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1)
+  ) {
+    const year = cursor.getFullYear();
+    const month = cursor.getMonth();
+    months.push({
+      key: `${year}-${String(month + 1).padStart(2, "0")}`,
+      label: cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" }),
+      year,
+      month,
+    });
+  }
 
   return months;
 }
 
 export async function createTransaction(formData: FormData) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Not authenticated" };
 
@@ -145,9 +143,7 @@ export async function createTransaction(formData: FormData) {
 
 export async function deleteTransaction(id: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser(supabase);
 
   if (!user) return { error: "Not authenticated" };
 

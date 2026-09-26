@@ -12,33 +12,46 @@ import { TransactionsListSkeleton } from "./transactions-skeleton";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
-import { useTransactions, useDeleteTransaction, useCreateTransaction } from "@/queries/transactions";
+import {
+  useTransactions,
+  useDeleteTransaction,
+  useCreateTransaction,
+  TransactionWithRelations,
+} from "@/queries/transactions";
 
 interface MonthOption {
   key: string;
   label: string;
 }
 
+// Must match the default state in FilterBar; the server prefetches this exact filter.
+const DEFAULT_FILTERS: FilterState = {
+  search: "",
+  type: "all",
+  categoryIds: [],
+  accountIds: [],
+  period: "current",
+};
+
 export function TransactionsList({
+  initialTransactions,
   accounts,
   categories,
   monthOptions,
 }: {
-  initialTransactions?: never; // kept for backward compat, unused
+  initialTransactions?: TransactionWithRelations[];
   accounts: Account[];
   categories: Category[];
   monthOptions: MonthOption[];
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentFilters, setCurrentFilters] = useState<FilterState>({
-    search: "",
-    type: "all",
-    categoryIds: [],
-    accountIds: [],
-    period: "current",
-  });
+  const [currentFilters, setCurrentFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
-  const { data: transactions = [], isLoading } = useTransactions(currentFilters);
+  // Server data only seeds the default filter; any other filter fetches normally.
+  const { data: transactions = [], isLoading } = useTransactions(
+    currentFilters,
+    currentFilters === DEFAULT_FILTERS ? initialTransactions : undefined,
+  );
   const deleteMutation = useDeleteTransaction();
   const createMutation = useCreateTransaction();
 

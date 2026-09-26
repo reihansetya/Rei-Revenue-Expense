@@ -1,4 +1,5 @@
-import { getAvailableMonths } from "./actions";
+import { format, startOfMonth, endOfMonth } from "date-fns";
+import { getAvailableMonths, getTransactions } from "./actions";
 import { getAccounts } from "../accounts/actions";
 import { getCategories } from "../categories/actions";
 import { TransactionsList } from "./transactions-list";
@@ -6,10 +7,17 @@ import { TransactionsList } from "./transactions-list";
 export default async function TransactionsPage() {
   // Fetch data statis (accounts, categories, monthOptions) di server
   // Transactions di-fetch client-side via TanStack Query untuk caching
-  const [accounts, categories, monthOptions] = await Promise.all([
+  // Initial list for the default filter (current month) is fetched here too,
+  // so the client does not wait for hydration + a second server round trip.
+  const now = new Date();
+  const [accounts, categories, monthOptions, initialTransactions] = await Promise.all([
     getAccounts(),
     getCategories(),
     getAvailableMonths(),
+    getTransactions({
+      startDate: format(startOfMonth(now), "yyyy-MM-dd"),
+      endDate: format(endOfMonth(now), "yyyy-MM-dd"),
+    }),
   ]);
 
   return (
@@ -21,6 +29,7 @@ export default async function TransactionsPage() {
         accounts={accounts}
         categories={categories}
         monthOptions={monthOptions}
+        initialTransactions={initialTransactions}
       />
     </div>
   );

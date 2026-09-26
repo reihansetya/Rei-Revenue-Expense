@@ -75,7 +75,10 @@ export const transactionKeys = {
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
-export function useTransactions(filters: FilterState) {
+export function useTransactions(
+  filters: FilterState,
+  initialData?: TransactionWithRelations[],
+) {
   return useQuery({
     queryKey: transactionKeys.filtered(filters),
     queryFn: async () => {
@@ -83,6 +86,7 @@ export function useTransactions(filters: FilterState) {
       const data = await getTransactions(params);
       return data as TransactionWithRelations[];
     },
+    initialData,
     staleTime: 60 * 1000, // 1 menit
   });
 }
