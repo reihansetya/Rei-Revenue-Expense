@@ -13,6 +13,7 @@ import {
   ArrowDownCircle,
 } from "lucide-react";
 import { CategoryFormDialog } from "./category-form-dialog";
+import { FormattedCurrency } from "@/components/ui/formatted-currency";
 import { toast } from "sonner";
 import {
   useCategories,
@@ -117,7 +118,14 @@ export function CategoriesList({
                   >
                     {category.icon}
                   </div>
-                  <span className="font-medium text-sm">{category.name}</span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm">{category.name}</p>
+                    {category.type === "expense" && Number(category.budget) > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Budget <FormattedCurrency amount={Number(category.budget)} /> / bulan
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <Button

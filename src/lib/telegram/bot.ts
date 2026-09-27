@@ -11,6 +11,7 @@ import {
   handleCategories,
   handleCancel,
   handleUndo,
+  handleBudget,
   handleCallback,
   handleTextMessage,
 } from "./commands";
@@ -45,6 +46,7 @@ bot.command("summary", handleSummary);
 bot.command("categories", handleCategories);
 bot.command("cancel", handleCancel);
 bot.command("undo", handleUndo);
+bot.command("budget", handleBudget);
 
 bot.on("callback_query", handleCallback);
 bot.on("text", handleTextMessage);
@@ -67,6 +69,7 @@ export async function setupBotCommands() {
     { command: "balance", description: "Cek saldo semua dompet" },
     { command: "categories", description: "Lihat daftar kategori tersedia" },
     { command: "summary", description: "Ringkasan transaksi bulan ini" },
+    { command: "budget", description: "Cek pemakaian budget bulan ini" },
     { command: "cancel", description: "Batalkan wizard aktif" },
     { command: "undo", description: "Hapus input terakhir dari Telegram" },
     { command: "link", description: "Hubungkan akun Telegram" },

@@ -2,7 +2,10 @@
 
 import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { todayWIB } from "@/lib/utils";
+import { getBudgetAlert } from "@/lib/budget-alert";
+import { sendTelegramMessage } from "@/lib/telegram/utils";
 
 export async function getTransactions(filters?: {
   type?: string;
@@ -135,6 +138,24 @@ export async function createTransaction(formData: FormData) {
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Budget alert to Telegram runs after the response is sent, so the form stays fast.
+  // Best-effort: the transaction is already saved.
+  if (type === "expense" && category_id) {
+    after(async () => {
+      try {
+        const [alert, { data: profile }] = await Promise.all([
+          getBudgetAlert(supabase, { userId: user.id, categoryId: category_id, date, amount }),
+          supabase.from("profiles").select("telegram_id").eq("user_id", user.id).maybeSingle(),
+        ]);
+        if (alert && profile?.telegram_id) {
+          await sendTelegramMessage(profile.telegram_id, alert);
+        }
+      } catch (err) {
+        console.error("Budget alert failed:", err);
+      }
+    });
   }
 
   revalidatePath("/transactions");

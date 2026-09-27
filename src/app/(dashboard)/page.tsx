@@ -97,7 +97,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Budget Progress (Only shows if budget is set) */}
-      <BudgetProgress data={data.spendingByCategory} />
+      <BudgetProgress data={data.budgetProgress} />
 
       {/* Charts Row 2: Line Chart */}
       <DailyTrendChart data={data.dailyData} />

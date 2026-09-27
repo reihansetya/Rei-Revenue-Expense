@@ -30,7 +30,7 @@ export async function getDashboardData(month?: string) {
 
   // All queries are independent, so they run as one parallel wave instead of 12 sequential round trips.
   // Trend stays one query per month so each stays well under PostgREST's 1000-row cap.
-  const [accountsRes, monthRes, recentRes, trendResList] = await Promise.all([
+  const [accountsRes, monthRes, recentRes, trendResList, budgetCategoriesRes] = await Promise.all([
     supabase.from("accounts").select("balance, type").eq("user_id", user.id),
     supabase
       .from("transactions")
@@ -56,6 +56,13 @@ export async function getDashboardData(month?: string) {
           .lte("date", end);
       })
     ),
+    supabase
+      .from("categories")
+      .select("name, icon, color, budget")
+      .eq("user_id", user.id)
+      .eq("type", "expense")
+      .gt("budget", 0)
+      .order("name"),
   ]);
 
   // 1. Balances
@@ -96,6 +103,15 @@ export async function getDashboardData(month?: string) {
     .sort((a, b) => b.total - a.total)
     .slice(0, 6); // Top 6 categories
 
+  // Budget progress covers every budgeted category, not only the top 6 by spending
+  const budgetProgress = (budgetCategoriesRes.data || []).map((c) => ({
+    name: c.name,
+    icon: c.icon,
+    color: c.color,
+    budget: Number(c.budget),
+    total: categoryMap[c.name]?.total ?? 0,
+  }));
+
   // 4. Daily spending for the month (for line chart)
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const dailyData = days.map((day) => {
@@ -130,6 +146,7 @@ export async function getDashboardData(month?: string) {
     monthlyIncome,
     monthlyExpense,
     spendingByCategory,
+    budgetProgress,
     dailyData,
     monthlyTrend,
     recentTransactions: recentRes.data,

@@ -2,6 +2,7 @@ import { Context, Markup } from "telegraf";
 import { createClient } from "@supabase/supabase-js";
 import { parseAmount, formatRupiah } from "./utils";
 import { getTransferType, todayWIB } from "../utils";
+import { getBudgetAlert, getBudgetStatus } from "../budget-alert";
 import {
   getCurrentMonthRange,
   classifyMessage,
@@ -181,6 +182,7 @@ export async function handleStart(ctx: Context) {
       `/summary - Ringkasan bulan ini\n` +
       `/cancel - Batalkan wizard aktif\n` +
       `/undo - Hapus input terakhir dari Telegram\n` +
+      `/budget - Cek pemakaian budget bulan ini\n` +
       `/help - Bantuan`,
     { parse_mode: "Markdown" },
   );
@@ -216,6 +218,7 @@ export async function handleHelp(ctx: Context) {
       `/summary - Ringkasan bulan ini\n` +
       `/cancel - Batalkan wizard aktif\n` +
       `/undo - Hapus input terakhir dari Telegram\n` +
+      `/budget - Cek pemakaian budget bulan ini\n` +
       `/link - Hubungkan akun Telegram`,
     { parse_mode: "Markdown" },
   );
@@ -1163,7 +1166,41 @@ export async function handleCallback(ctx: Context) {
         `📅 Tanggal: ${dateDisplay}`,
       { parse_mode: "Markdown" },
     );
+
+    // Budget alert is best-effort: the transaction is already saved
+    if (data.wizardType === "expense" && data.categoryId) {
+      try {
+        const alert = await getBudgetAlert(supabase, {
+          userId: data.userId,
+          categoryId: data.categoryId,
+          date: dateDisplay,
+          amount: Number(data.amount),
+        });
+        if (alert) await ctx.reply(alert);
+      } catch (err) {
+        console.error("❌ Budget alert failed:", err);
+      }
+    }
   }
+}
+
+// /budget
+export async function handleBudget(ctx: Context) {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const profile = await getUserByTelegramId(telegramId);
+  if (!profile) {
+    await ctx.reply("❌ Akun belum terhubung. Gunakan /link terlebih dahulu.");
+    return;
+  }
+
+  const status = await getBudgetStatus(supabase, profile.user_id);
+  await ctx.reply(
+    status ??
+      "📭 Belum ada kategori dengan budget.\n\n" +
+        "Atur di web: Kategori → edit kategori pengeluaran → Anggaran Bulanan.",
+  );
 }
 
 // /undo — delete the latest entry made via Telegram (transaction or transfer)

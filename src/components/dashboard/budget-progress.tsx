@@ -30,10 +30,11 @@ export function BudgetProgress({ data }: BudgetProgressProps) {
           const budget = item.budget || Number.MAX_VALUE;
           const percentage = Math.min((item.total / budget) * 100, 100);
           
+          // Same thresholds as the Telegram budget alerts (80% / 100%)
           let progressColor = item.color;
-          if (percentage >= 90) {
-            progressColor = "#EF4444"; // Red when almost/over limit
-          } else if (percentage >= 70) {
+          if (percentage >= 100) {
+            progressColor = "#EF4444"; // Red when over limit
+          } else if (percentage >= 80) {
             progressColor = "#F59E0B"; // Amber when getting close
           }
 

@@ -12,6 +12,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { NumericFormat } from "react-number-format";
 
 const CATEGORY_ICONS = [
   "🍔",
@@ -74,6 +75,11 @@ export function CategoryFormDialog({
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
+    // Clean up the formatted budget (e.g., "1.500.000" -> "1500000")
+    const rawBudget = formData.get("budget") as string | null;
+    if (rawBudget) {
+      formData.set("budget", rawBudget.replace(/\./g, ""));
+    }
     formData.set("icon", selectedIcon);
     formData.set("color", selectedColor);
     await onSubmit(formData);
@@ -113,12 +119,16 @@ export function CategoryFormDialog({
           {selectedType === "expense" && (
             <div className="space-y-2">
               <Label htmlFor="budget">Anggaran Bulanan (Opsional)</Label>
-              <Input
+              <NumericFormat
                 id="budget"
                 name="budget"
-                type="number"
-                placeholder="Contoh: 1500000"
-                defaultValue={defaultValues?.budget}
+                customInput={Input}
+                thousandSeparator="."
+                decimalSeparator=","
+                decimalScale={0}
+                placeholder="Contoh: 1.500.000"
+                allowNegative={false}
+                defaultValue={defaultValues?.budget ?? undefined}
               />
               <p className="text-xs text-muted-foreground">Isi untuk memantau batas pengeluaran kategori ini per bulan.</p>
             </div>
