@@ -1,4 +1,5 @@
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import { todayWIB } from "@/lib/utils";
 import { getAvailableMonths, getTransactions } from "./actions";
 import { getAccounts } from "../accounts/actions";
 import { getCategories } from "../categories/actions";
@@ -9,7 +10,8 @@ export default async function TransactionsPage() {
   // Transactions di-fetch client-side via TanStack Query untuk caching
   // Initial list for the default filter (current month) is fetched here too,
   // so the client does not wait for hydration + a second server round trip.
-  const now = new Date();
+  // Must match the browser's "current month" filter, which is on WIB time
+  const now = new Date(todayWIB());
   const [accounts, categories, monthOptions, initialTransactions] = await Promise.all([
     getAccounts(),
     getCategories(),

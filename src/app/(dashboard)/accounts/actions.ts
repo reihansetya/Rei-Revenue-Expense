@@ -3,6 +3,7 @@
 import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { InvestmentBalanceLog } from "@/types";
+import { todayWIB } from "@/lib/utils";
 
 export async function getAccounts() {
   const supabase = await createClient();
@@ -129,7 +130,7 @@ export async function updateWalletBalance(
 
   const transactionType = difference > 0 ? "income" : "expense";
   const amount = Math.abs(difference);
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = todayWIB();
 
   // 2. Cari atau buat kategori "Balancing"
   //    income → balancing income, expense → balancing expense

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient, getAuthUser } from "@/lib/supabase/server";
+import { todayWIB } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, subMonths, eachDayOfInterval } from "date-fns";
 
 type AmountRow = { type: string; amount: number | string };
@@ -17,14 +18,15 @@ export async function getDashboardData(month?: string) {
 
   if (!user) return null;
 
-  // Parse month or use current
-  const targetDate = month ? new Date(month + "-01") : new Date();
+  // Parse month or use current (WIB: the server runs in UTC)
+  const today = new Date(todayWIB());
+  const targetDate = month ? new Date(month + "-01") : today;
   const monthStart = startOfMonth(targetDate);
   const monthEnd = endOfMonth(targetDate);
   const [monthStartStr, monthEndStr] = dateRange(targetDate);
 
   // Trend always covers the last 6 months from today (not from the selected month)
-  const trendMonths = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i));
+  const trendMonths = Array.from({ length: 6 }, (_, i) => subMonths(today, 5 - i));
 
   // All queries are independent, so they run as one parallel wave instead of 12 sequential round trips.
   // Trend stays one query per month so each stays well under PostgREST's 1000-row cap.

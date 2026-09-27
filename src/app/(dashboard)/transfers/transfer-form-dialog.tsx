@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import type { Account } from "@/types";
 import { NumericFormat } from "react-number-format";
+import { todayWIB } from "@/lib/utils";
 
 interface TransferFormDialogProps {
   accounts: Account[];
@@ -94,7 +95,7 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
   }
 
   // Default date: hari ini
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayWIB();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

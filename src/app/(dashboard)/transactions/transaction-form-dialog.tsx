@@ -13,6 +13,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { NumericFormat } from "react-number-format";
+import { todayWIB } from "@/lib/utils";
 
 interface TransactionFormDialogProps {
   open: boolean;
@@ -35,7 +36,7 @@ export function TransactionFormDialog({
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
   const filteredCategories = categories.filter((c) => c.type === selectedType);
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayWIB();
 
   if (!open) return null;
 

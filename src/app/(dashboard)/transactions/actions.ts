@@ -2,6 +2,7 @@
 
 import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { todayWIB } from "@/lib/utils";
 
 export async function getTransactions(filters?: {
   type?: string;
@@ -83,7 +84,7 @@ export async function getAvailableMonths() {
   // (FilterBar relies on index 0 = this month and 1 = last month).
   const oldestDate = new Date(oldest.date);
   const oldestMonthStart = new Date(oldestDate.getFullYear(), oldestDate.getMonth(), 1);
-  const now = new Date();
+  const now = new Date(todayWIB());
   const months = [];
 
   for (

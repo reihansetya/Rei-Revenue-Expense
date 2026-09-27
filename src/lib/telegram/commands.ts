@@ -1,12 +1,9 @@
 import { Context, Markup } from "telegraf";
 import { createClient } from "@supabase/supabase-js";
+import { parseAmount, formatRupiah } from "./utils";
+import { getTransferType, todayWIB } from "../utils";
 import {
-  parseAmount,
-  formatRupiah,
   getCurrentMonthRange,
-} from "./utils";
-import { getTransferType } from "../utils";
-import {
   classifyMessage,
   isTransferMessage,
   parseTransaction,
@@ -183,6 +180,7 @@ export async function handleStart(ctx: Context) {
       `/categories - Daftar kategori\n` +
       `/summary - Ringkasan bulan ini\n` +
       `/cancel - Batalkan wizard aktif\n` +
+      `/undo - Hapus input terakhir dari Telegram\n` +
       `/help - Bantuan`,
     { parse_mode: "Markdown" },
   );
@@ -217,6 +215,7 @@ export async function handleHelp(ctx: Context) {
       `/categories - Lihat daftar kategori tersedia\n` +
       `/summary - Ringkasan bulan ini\n` +
       `/cancel - Batalkan wizard aktif\n` +
+      `/undo - Hapus input terakhir dari Telegram\n` +
       `/link - Hubungkan akun Telegram`,
     { parse_mode: "Markdown" },
   );
@@ -463,7 +462,7 @@ async function showAccountSelection(
       ? category.icon + " " + category.name
       : "Tanpa Kategori",
     description,
-    today: new Date().toISOString().split("T")[0],
+    today: todayWIB(),
     requestId,
   });
 
@@ -539,7 +538,7 @@ async function showTransferConfirmation(
     dstAccountId: dstAccount.id,
     dstAccountName: dstAccount.name,
     description,
-    today: new Date().toISOString().split("T")[0],
+    today: todayWIB(),
     requestId,
   });
 
@@ -549,7 +548,7 @@ async function showTransferConfirmation(
       `🏦 Dari: ${srcAccount.name}\n` +
       `🏦 Ke: ${dstAccount.name}\n` +
       `📝 Catatan: ${description || "-"}\n` +
-      `📅 Tanggal: ${new Date().toISOString().split("T")[0]}\n\n` +
+      `📅 Tanggal: ${todayWIB()}\n\n` +
       `Apakah sudah benar?`,
     {
       parse_mode: "Markdown",
@@ -965,7 +964,7 @@ export async function handleCallback(ctx: Context) {
       data.dstAccountId,
       data.amount,
       data.description,
-      data.today || new Date().toISOString().split("T")[0],
+      data.today || todayWIB(),
     );
 
     if (!result.success) {
@@ -992,8 +991,39 @@ export async function handleCallback(ctx: Context) {
         `🏦 Dari: ${data.srcAccountName}\n` +
         `🏦 Ke: ${data.dstAccountName}\n` +
         `📝 Catatan: ${data.description || "-"}\n` +
-        `📅 Tanggal: ${data.today || new Date().toISOString().split("T")[0]}`,
+        `📅 Tanggal: ${data.today || todayWIB()}`,
       { parse_mode: "Markdown" },
+    );
+    return;
+  }
+
+  // CASE 2.5: Undo Confirmation
+  if (cbData.startsWith("u:")) {
+    const [, requestId] = cbData.split(":");
+    const data = await getTelegramSession(telegramId);
+
+    if (
+      !data ||
+      data.type !== "pending" ||
+      data.wizardType !== "undo" ||
+      data.requestId !== requestId
+    ) {
+      await ctx.answerCbQuery("❌ Sesi berakhir atau data tidak ditemukan.");
+      return;
+    }
+
+    await deleteTelegramSession(telegramId);
+
+    const result = await undoEntry(data.userId, data.kind, data.id);
+    if (!result.success) {
+      await ctx.answerCbQuery(`❌ ${result.error}`);
+      await ctx.editMessageText(`❌ ${result.error}\n\n${data.summary}`);
+      return;
+    }
+
+    await ctx.answerCbQuery("✅ Dihapus");
+    await ctx.editMessageText(
+      `✅ Dihapus, saldo sudah dikembalikan.\n\n${data.summary}\n\nKetik /undo lagi untuk menghapus entri sebelumnya.`,
     );
     return;
   }
@@ -1012,6 +1042,12 @@ export async function handleCallback(ctx: Context) {
 
     // Hapus session
     await deleteTelegramSession(telegramId);
+
+    if (data.wizardType === "undo") {
+      await ctx.answerCbQuery("✅ Dibatalkan");
+      await ctx.editMessageText(`↩️ Undo dibatalkan, tidak ada yang dihapus.\n\n${data.summary}`);
+      return;
+    }
 
     let label = "";
     if (data.wizardType === "expense") {
@@ -1087,7 +1123,7 @@ export async function handleCallback(ctx: Context) {
       type: data.wizardType,
       amount: data.amount,
       description: data.description || "", // Pastikan tidak null
-      date: data.date || data.today || new Date().toISOString().split("T")[0], // Gunakan date atau today
+      date: data.date || data.today || todayWIB(), // Gunakan date atau today
       account_id: accountId,
       category_id: data.categoryId, // Boleh null jika kolom database nullable
       source: "telegram",
@@ -1114,7 +1150,7 @@ export async function handleCallback(ctx: Context) {
 
     // Gunakan tanggal yang benar (date untuk NLP, today untuk wizard)
     const dateDisplay =
-      data.date || data.today || new Date().toISOString().split("T")[0];
+      data.date || data.today || todayWIB();
 
     // Update pesan agar tidak bisa diklik lagi (ganti dengan status sukses)
     await ctx.answerCbQuery("✅ Berhasil disimpan!");
@@ -1128,6 +1164,148 @@ export async function handleCallback(ctx: Context) {
       { parse_mode: "Markdown" },
     );
   }
+}
+
+// /undo — delete the latest entry made via Telegram (transaction or transfer)
+export async function handleUndo(ctx: Context) {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const profile = await getUserByTelegramId(telegramId);
+  if (!profile) {
+    await ctx.reply("❌ Akun belum terhubung. Gunakan /link terlebih dahulu.");
+    return;
+  }
+
+  const [{ data: lastTx }, { data: lastTransfer }] = await Promise.all([
+    supabase
+      .from("transactions")
+      .select(
+        "id, type, amount, description, date, created_at, categories(name, icon), accounts(name)",
+      )
+      .eq("user_id", profile.user_id)
+      .eq("source", "telegram")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("transfers")
+      .select(
+        `id, amount, description, date, created_at,
+        from_account:accounts!transfers_from_account_id_fkey (name),
+        to_account:accounts!transfers_to_account_id_fkey (name)`,
+      )
+      .eq("user_id", profile.user_id)
+      .eq("source", "telegram")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  if (!lastTx && !lastTransfer) {
+    await ctx.reply("🤷 Tidak ada input dari Telegram yang bisa dihapus.");
+    return;
+  }
+
+  // Whichever was created last
+  const isTransfer =
+    !!lastTransfer && (!lastTx || lastTransfer.created_at > lastTx.created_at);
+  const entry: any = isTransfer ? lastTransfer : lastTx;
+
+  // Plain text (no Markdown): descriptions are user input and may contain * or _
+  const summary = isTransfer
+    ? `🔁 Transfer ${formatRupiah(Number(entry.amount))}\n` +
+      `🏦 ${entry.from_account?.name ?? "?"} → ${entry.to_account?.name ?? "?"}\n` +
+      `📝 ${entry.description || "-"}\n` +
+      `📅 ${entry.date}`
+    : `${entry.type === "expense" ? "💸 Pengeluaran" : "💰 Pemasukan"} ${formatRupiah(Number(entry.amount))}\n` +
+      `📂 ${entry.categories ? `${entry.categories.icon} ${entry.categories.name}` : "Tanpa Kategori"}\n` +
+      `🏦 ${entry.accounts?.name ?? "-"}\n` +
+      `📝 ${entry.description || "-"}\n` +
+      `📅 ${entry.date}`;
+
+  const requestId = Math.random().toString(36).slice(2, 10);
+  await setTelegramSession(telegramId, {
+    type: "pending",
+    wizardType: "undo",
+    userId: profile.user_id,
+    kind: isTransfer ? "transfer" : "transaction",
+    id: entry.id,
+    summary,
+    requestId,
+  });
+
+  await ctx.reply(
+    `↩️ Hapus input terakhir ini?\n\n${summary}`,
+    Markup.inlineKeyboard([
+      [
+        Markup.button.callback("✅ Hapus", `u:${requestId}`),
+        Markup.button.callback("❌ Batal", `cancel:${requestId}`),
+      ],
+    ]),
+  );
+}
+
+// Helper: delete an entry and reverse its balance effect (same RPCs as the web).
+// Delete first with .select(): only one call can get the row back, so a double tap
+// never reverses the balance twice.
+// ponytail: delete + reverse are two calls; a single DB function (or AFTER DELETE
+// triggers, planned with web edit/F4) would make it atomic.
+async function undoEntry(
+  userId: string,
+  kind: "transaction" | "transfer",
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  const balanceError =
+    "Data terhapus, tapi saldo gagal dikembalikan. Cek saldo akun di web.";
+
+  if (kind === "transfer") {
+    const { data: transfer, error } = await supabase
+      .from("transfers")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId)
+      .select("from_account_id, to_account_id, amount")
+      .maybeSingle();
+
+    if (error) return { success: false, error: "Gagal menghapus transfer" };
+    if (!transfer) return { success: false, error: "Transfer sudah dihapus" };
+
+    const { error: rpcError } = await supabase.rpc("reverse_transfer_balance", {
+      p_from_account_id: transfer.from_account_id,
+      p_to_account_id: transfer.to_account_id,
+      p_amount: transfer.amount,
+    });
+    if (rpcError) {
+      console.error("❌ Error reversing transfer balance:", rpcError);
+      return { success: false, error: balanceError };
+    }
+    return { success: true };
+  }
+
+  const { data: transaction, error } = await supabase
+    .from("transactions")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userId)
+    .select("account_id, type, amount")
+    .maybeSingle();
+
+  if (error) return { success: false, error: "Gagal menghapus transaksi" };
+  if (!transaction) return { success: false, error: "Transaksi sudah dihapus" };
+
+  if (transaction.account_id && transaction.type !== "transfer") {
+    const amount = Number(transaction.amount);
+    const { error: rpcError } = await supabase.rpc("increment_balance", {
+      account_id: transaction.account_id,
+      amount: transaction.type === "expense" ? amount : -amount,
+    });
+    if (rpcError) {
+      console.error("❌ Error reversing transaction balance:", rpcError);
+      return { success: false, error: balanceError };
+    }
+  }
+  return { success: true };
 }
 
 // /balance
@@ -1331,6 +1509,7 @@ export async function handleSummary(ctx: Context) {
 
   const now = new Date();
   const monthName = now.toLocaleString("id-ID", {
+    timeZone: "Asia/Jakarta",
     month: "long",
     year: "numeric",
   });

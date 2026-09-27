@@ -3,6 +3,23 @@
  * Extract tanggal dari text (relative & absolute)
  */
 
+import { todayWIB } from "../../utils";
+
+/**
+ * Today on the WIB calendar, anchored at UTC midnight. All arithmetic below uses
+ * UTC methods, so results are identical on a UTC server (webhook on Vercel) and
+ * a WIB machine (polling bot).
+ */
+function getToday(): Date {
+  return new Date(`${todayWIB()}T00:00:00Z`);
+}
+
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
 /**
  * Extract tanggal dari pesan
  * Examples: "kemarin makan" → 2026-03-19, "hari ini belanja" → 2026-03-20
@@ -12,32 +29,26 @@ export function extractDate(message: string): {
   isRelative: boolean;
 } {
   const lower = message.toLowerCase();
-  const today = new Date();
+  const today = getToday();
 
   // Relative date keywords
   if (lower.includes("kemarin") || lower.includes("yesterday")) {
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
     return {
-      date: formatDateToString(yesterday),
+      date: formatDateToString(addDays(today, -1)),
       isRelative: true,
     };
   }
 
   if (lower.includes("besok") || lower.includes("tomorrow")) {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
     return {
-      date: formatDateToString(tomorrow),
+      date: formatDateToString(addDays(today, 1)),
       isRelative: true,
     };
   }
 
   if (lower.includes("lusa")) {
-    const dayAfter = new Date(today);
-    dayAfter.setDate(dayAfter.getDate() + 2);
     return {
-      date: formatDateToString(dayAfter),
+      date: formatDateToString(addDays(today, 2)),
       isRelative: true,
     };
   }
@@ -46,10 +57,8 @@ export function extractDate(message: string): {
   const daysAgoMatch = lower.match(/(\d+)\s*hari\s*lalu/);
   if (daysAgoMatch) {
     const days = parseInt(daysAgoMatch[1], 10);
-    const date = new Date(today);
-    date.setDate(date.getDate() - days);
     return {
-      date: formatDateToString(date),
+      date: formatDateToString(addDays(today, -days)),
       isRelative: true,
     };
   }
@@ -67,17 +76,14 @@ export function extractDate(message: string): {
 
   for (const [day, dayNum] of Object.entries(dayNames)) {
     if (lower.includes(day)) {
-      const date = new Date(today);
-      const currentDay = date.getDay();
-      const diff = currentDay - dayNum;
+      const diff = today.getUTCDay() - dayNum;
 
       // Jika diff positif, kurangi diff hari
       // Jika diff negatif atau 0, itu hari ini/minggu ini, ambil minggu lalu
       const daysToSubtract = diff >= 0 ? diff : 7 + diff;
-      date.setDate(date.getDate() - daysToSubtract);
 
       return {
-        date: formatDateToString(date),
+        date: formatDateToString(addDays(today, -daysToSubtract)),
         isRelative: true,
       };
     }
@@ -102,7 +108,9 @@ export function getDateRange(
     | "last_month"
     | "all",
 ): { start: string; end: string } {
-  const today = new Date();
+  const today = getToday();
+  const year = today.getUTCFullYear();
+  const month = today.getUTCMonth();
 
   switch (period) {
     case "today": {
@@ -111,41 +119,29 @@ export function getDateRange(
     }
 
     case "yesterday": {
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const dateStr = formatDateToString(yesterday);
+      const dateStr = formatDateToString(addDays(today, -1));
       return { start: dateStr, end: dateStr };
     }
 
     case "this_week": {
       // Sunday of current week
-      const start = new Date(today);
-      const dayOfWeek = start.getDay();
-      start.setDate(start.getDate() - dayOfWeek);
-
       return {
-        start: formatDateToString(start),
+        start: formatDateToString(addDays(today, -today.getUTCDay())),
         end: formatDateToString(today),
       };
     }
 
     case "this_month": {
-      const start = new Date(today.getFullYear(), today.getMonth(), 1);
-      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
       return {
-        start: formatDateToString(start),
-        end: formatDateToString(end),
+        start: formatDateToString(new Date(Date.UTC(year, month, 1))),
+        end: formatDateToString(new Date(Date.UTC(year, month + 1, 0))),
       };
     }
 
     case "last_month": {
-      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      const end = new Date(today.getFullYear(), today.getMonth(), 0);
-
       return {
-        start: formatDateToString(start),
-        end: formatDateToString(end),
+        start: formatDateToString(new Date(Date.UTC(year, month - 1, 1))),
+        end: formatDateToString(new Date(Date.UTC(year, month, 0))),
       };
     }
 
@@ -155,11 +151,10 @@ export function getDateRange(
         end: "2100-12-31",
       };
 
-    default:
-      return {
-        start: formatDateToString(today),
-        end: formatDateToString(today),
-      };
+    default: {
+      const dateStr = formatDateToString(today);
+      return { start: dateStr, end: dateStr };
+    }
   }
 }
 
@@ -181,6 +176,7 @@ export function getPeriodLabel(period: string): string {
 
 /**
  * Helper: Format date ke ISO string (YYYY-MM-DD)
+ * Safe because every date here is anchored at UTC midnight.
  */
 function formatDateToString(date: Date): string {
   return date.toISOString().split("T")[0];

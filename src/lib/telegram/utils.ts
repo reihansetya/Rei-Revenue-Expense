@@ -29,15 +29,3 @@ export function formatRupiah(amount: number): string {
     minimumFractionDigits: 0,
   }).format(amount);
 }
-
-// Get start & end of current month
-export function getCurrentMonthRange() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    .toISOString()
-    .split("T")[0];
-  return { start, end };
-}

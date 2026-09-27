@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# SF
+/.sf
+
 # next.js
 /.next/
 /out/
