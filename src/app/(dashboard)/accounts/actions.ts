@@ -151,7 +151,7 @@ export async function updateWalletBalance(
         user_id: user.id,
         name: "Balancing",
         type: transactionType,
-        icon: "scale",
+        icon: "⚖️", // categories use emoji icons (was the Lucide name "scale", rendered as text)
         color: "#8B5CF6",
       })
       .select("id")

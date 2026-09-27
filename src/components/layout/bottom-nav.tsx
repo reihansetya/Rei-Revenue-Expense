@@ -22,8 +22,9 @@ const navigation = [
 export function BottomNav() {
   const pathname = usePathname();
 
+  // z-40: below the z-50 form dialogs/overlays so it never covers their buttons, above the z-30 header
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pointer-events-none">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden flex justify-center pointer-events-none">
       <div className="relative w-full max-w-md mx-4 mb-4 pointer-events-auto">
         {/* Floating bar */}
         <div className="flex items-center justify-around h-16 rounded-2xl bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg shadow-black/10 dark:shadow-black/30">
