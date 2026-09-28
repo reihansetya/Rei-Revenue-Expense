@@ -107,7 +107,10 @@ export function CategoryFormDialog({
             <Label htmlFor="type">Tipe</Label>
             <Select name="type" defaultValue={selectedType} onValueChange={(value) => value && setSelectedType(value as "income" | "expense")}>
               <SelectTrigger>
-                <SelectValue placeholder="Pilih tipe" />
+                {/* Base UI shows the raw value ("expense") unless the label is given */}
+                <SelectValue placeholder="Pilih tipe">
+                  {selectedType === "income" ? "Pemasukan" : "Pengeluaran"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="income">Pemasukan</SelectItem>
@@ -123,6 +126,7 @@ export function CategoryFormDialog({
                 id="budget"
                 name="budget"
                 customInput={Input}
+                inputMode="numeric"
                 thousandSeparator="."
                 decimalSeparator=","
                 decimalScale={0}

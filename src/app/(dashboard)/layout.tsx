@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { QuickAddButton } from "@/components/layout/quick-add-button";
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 
 export default function DashboardLayout({
@@ -14,13 +15,14 @@ export default function DashboardLayout({
         <Sidebar />
         <div className="flex flex-col sm:gap-4 sm:py-0 w-full overflow-x-hidden md:flex-1">
           <Header />
-          {/* pb-20 for mobile bottom nav, md:pb-0 for desktop */}
-          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 pb-24 md:pb-0">
+          {/* Bottom padding so the last items can scroll clear of the bottom nav and the floating "+" */}
+          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 pb-40 md:pb-24">
             {children}
           </main>
         </div>
       </div>
       <BottomNav />
+      <QuickAddButton />
       <PWAInstallPrompt />
     </div>
   );

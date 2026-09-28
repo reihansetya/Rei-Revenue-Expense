@@ -15,7 +15,6 @@ import { toast } from "sonner";
 import {
   useTransactions,
   useDeleteTransaction,
-  useCreateTransaction,
   TransactionWithRelations,
 } from "@/queries/transactions";
 
@@ -53,27 +52,11 @@ export function TransactionsList({
     currentFilters === DEFAULT_FILTERS ? initialTransactions : undefined,
   );
   const deleteMutation = useDeleteTransaction();
-  const createMutation = useCreateTransaction();
 
   // Handle filter change
   const handleFilterChange = (filters: FilterState) => {
     setCurrentFilters(filters);
   };
-
-  async function handleCreate(formData: FormData): Promise<void> {
-    return new Promise((resolve) => {
-      createMutation.mutate(formData, {
-        onSuccess: () => {
-          setDialogOpen(false);
-          resolve();
-        },
-        onError: (error) => {
-          toast.error(error.message || "Gagal menambahkan transaksi", { closeButton: true });
-          resolve();
-        },
-      });
-    });
-  }
 
   function handleDelete(id: string) {
     toast("Hapus transaksi ini?", {
@@ -189,7 +172,6 @@ export function TransactionsList({
       <TransactionFormDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        onSubmit={handleCreate}
         accounts={accounts}
         categories={categories}
       />

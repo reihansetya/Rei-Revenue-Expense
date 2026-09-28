@@ -14,47 +14,86 @@ import {
 } from "@/components/ui/select";
 import { NumericFormat } from "react-number-format";
 import { todayWIB } from "@/lib/utils";
+import { useCreateTransaction } from "@/queries/transactions";
 
 interface TransactionFormDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (formData: FormData) => Promise<void>;
   accounts: Account[];
   categories: Category[];
+}
+
+// Last used account and category per type, so daily entries need fewer taps.
+// Per-browser convenience only: storage can be empty or blocked, and stale IDs are ignored.
+const LAST_USED_KEY = "transaction-form:last-used";
+type LastUsed = { accountId?: string; categoryIds?: Record<string, string> };
+
+function readLastUsed(): LastUsed {
+  try {
+    return JSON.parse(localStorage.getItem(LAST_USED_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveLastUsed(value: LastUsed) {
+  try {
+    localStorage.setItem(LAST_USED_KEY, JSON.stringify(value));
+  } catch {
+    // ignore: storage unavailable
+  }
 }
 
 export function TransactionFormDialog({
   open,
   onClose,
-  onSubmit,
   accounts,
   categories,
 }: TransactionFormDialogProps) {
-  const [loading, setLoading] = useState(false);
+  const createMutation = useCreateTransaction();
   const [selectedType, setSelectedType] = useState<string>("expense");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
+    () => readLastUsed().categoryIds?.expense ?? "",
+  );
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(
+    () => readLastUsed().accountId ?? "",
+  );
+  const [date, setDate] = useState(todayWIB);
+  // Bumped after "Simpan & tambah lagi" to remount (clear) amount and note
+  const [formKey, setFormKey] = useState(0);
 
   const filteredCategories = categories.filter((c) => c.type === selectedType);
-  const today = todayWIB();
 
   if (!open) return null;
 
-  function handleClose() {
-    setSelectedCategoryId("");
-    setSelectedAccountId("");
+  // Only IDs that still exist are used (a remembered account may have been deleted)
+  const selectedCategory = filteredCategories.find(
+    (c) => c.id === selectedCategoryId,
+  );
+  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+
+  function resetForm() {
+    const lastUsed = readLastUsed();
     setSelectedType("expense");
+    setSelectedCategoryId(lastUsed.categoryIds?.expense ?? "");
+    setSelectedAccountId(lastUsed.accountId ?? "");
+    setDate(todayWIB());
+  }
+
+  function handleClose() {
+    resetForm();
     onClose();
   }
 
   function handleTypeChange(type: string) {
     setSelectedType(type);
-    setSelectedCategoryId(""); // reset kategori saat ganti tipe
+    setSelectedCategoryId(readLastUsed().categoryIds?.[type] ?? "");
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
+    const submitter = (e.nativeEvent as SubmitEvent).submitter;
+    const addAnother = submitter?.getAttribute("name") === "add-another";
     const formData = new FormData(e.currentTarget);
 
     // Clean up the formatted amount (e.g., "1.500.000" -> "1500000")
@@ -64,24 +103,40 @@ export function TransactionFormDialog({
     }
 
     formData.set("type", selectedType);
-    formData.set("category_id", selectedCategoryId);
-    formData.set("account_id", selectedAccountId);
+    formData.set("category_id", selectedCategory?.id ?? "");
+    formData.set("account_id", selectedAccount?.id ?? "");
 
-    await onSubmit(formData);
-    setLoading(false);
+    // Success/error toasts and cache invalidation are handled by the mutation hook
+    createMutation.mutate(formData, {
+      onSuccess: () => {
+        const lastUsed = readLastUsed();
+        saveLastUsed({
+          accountId: selectedAccount?.id ?? lastUsed.accountId,
+          categoryIds: {
+            ...lastUsed.categoryIds,
+            ...(selectedCategory && { [selectedType]: selectedCategory.id }),
+          },
+        });
+
+        if (addAnother) {
+          // Keep type, category, account and date; clear amount and note
+          setFormKey((key) => key + 1);
+        } else {
+          resetForm();
+          onClose();
+        }
+      },
+    });
   }
 
-  const selectedCategory = filteredCategories.find(
-    (c) => c.id === selectedCategoryId,
-  );
-  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+  const isSaving = createMutation.isPending;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={handleClose} />
       <div className="relative z-50 w-full max-w-md rounded-lg bg-background border p-6 shadow-lg max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Tambah Transaksi</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form key={formKey} onSubmit={handleSubmit} className="space-y-4">
           {/* Type Selector */}
           <div className="flex gap-2">
             <Button
@@ -104,10 +159,13 @@ export function TransactionFormDialog({
 
           <div className="space-y-2">
             <Label htmlFor="amount">Jumlah (Rp)</Label>
+            {/* inputMode opens the numeric keypad on phones */}
             <NumericFormat
               id="amount"
               name="amount"
               customInput={Input}
+              inputMode="numeric"
+              autoFocus
               thousandSeparator="."
               decimalSeparator=","
               placeholder="50.000"
@@ -120,7 +178,7 @@ export function TransactionFormDialog({
           <div className="space-y-2">
             <Label>Kategori</Label>
             <Select
-              value={selectedCategoryId}
+              value={selectedCategory?.id ?? ""}
               onValueChange={(val) => setSelectedCategoryId(val || "")}
             >
               <SelectTrigger>
@@ -150,7 +208,7 @@ export function TransactionFormDialog({
           <div className="space-y-2">
             <Label>Dompet</Label>
             <Select
-              value={selectedAccountId}
+              value={selectedAccount?.id ?? ""}
               onValueChange={(val) => setSelectedAccountId(val || "")}
             >
               <SelectTrigger>
@@ -179,7 +237,8 @@ export function TransactionFormDialog({
               id="date"
               name="date"
               type="date"
-              defaultValue={today}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               required
             />
           </div>
@@ -193,12 +252,20 @@ export function TransactionFormDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={handleClose}>
               Batal
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Menyimpan..." : "Simpan"}
+            <Button
+              type="submit"
+              name="add-another"
+              variant="secondary"
+              disabled={isSaving}
+            >
+              Simpan & tambah lagi
+            </Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Menyimpan..." : "Simpan"}
             </Button>
           </div>
         </form>

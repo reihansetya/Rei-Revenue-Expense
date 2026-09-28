@@ -229,6 +229,7 @@ export function TransferFormDialog({ accounts }: TransferFormDialogProps) {
               </span>
               <NumericFormat
                 name="amount"
+                inputMode="numeric"
                 className="pl-9"
                 placeholder="0"
                 min="1"
