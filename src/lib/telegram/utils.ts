@@ -31,15 +31,20 @@ export function formatRupiah(amount: number): string {
 }
 
 // Send from outside a bot update (web server actions, cron); plain text, no Markdown.
+// `extra` is merged into the request body (e.g. reply_markup for inline buttons).
 // Throws on failure so callers can count/report it.
-export async function sendTelegramMessage(chatId: number, text: string) {
+export async function sendTelegramMessage(
+  chatId: number,
+  text: string,
+  extra?: Record<string, unknown>,
+) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not set");
 
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text }),
+    body: JSON.stringify({ chat_id: chatId, text, ...extra }),
   });
   if (!res.ok) {
     throw new Error(`Telegram sendMessage failed: ${res.status} ${await res.text()}`);

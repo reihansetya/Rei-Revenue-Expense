@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/app/(auth)/actions";
-import { Settings, Tags, LogOut, User } from "lucide-react";
+import { Settings, Tags, LogOut, User, CalendarClock } from "lucide-react";
 
 export function Header() {
   return (
@@ -38,7 +38,13 @@ export function Header() {
             <DropdownMenuGroup>
               <div className="px-2 py-1.5 text-sm font-semibold">Menu</div>
               <DropdownMenuSeparator />
-              {/* Mobile only: Categories & Settings */}
+              {/* Mobile only: Bills, Categories & Settings */}
+              <DropdownMenuItem className="md:hidden">
+                <Link href="/bills" className="flex items-center w-full">
+                  <CalendarClock className="mr-2 h-4 w-4" />
+                  Tagihan
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem className="md:hidden">
                 <Link href="/categories" className="flex items-center w-full">
                   <Tags className="mr-2 h-4 w-4" />

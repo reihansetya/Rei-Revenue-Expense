@@ -53,6 +53,26 @@ export interface Transaction {
   categories?: { name: string; icon: string; color: string } | null;
 }
 
+export type BillIntervalUnit = 'week' | 'month' | 'year';
+
+export interface Bill {
+  id: string;
+  user_id: string;
+  name: string;
+  amount: number;
+  category_id: string | null;
+  account_id: string | null;
+  interval_unit: BillIntervalUnit;
+  interval_count: number;
+  start_date: string;
+  next_due_date: string;
+  created_at: string;
+  // Relations
+  categories?: { name: string; icon: string } | null;
+  // Only payments due this month (filtered in getBills)
+  bill_payments?: { due_date: string; transactions: { amount: number } | null }[];
+}
+
 // ============================================
 // NEW: TRANSFER TYPE
 // ============================================

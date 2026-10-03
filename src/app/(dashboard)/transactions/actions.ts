@@ -205,6 +205,7 @@ export async function deleteTransaction(id: string) {
   }
 
   revalidatePath("/transactions");
+  revalidatePath("/bills");
   revalidatePath("/");
   return { success: true };
 }

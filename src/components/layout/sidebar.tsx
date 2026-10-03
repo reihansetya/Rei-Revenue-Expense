@@ -12,6 +12,7 @@ import {
   Settings,
   ArrowRightLeft,
   TrendingUp,
+  CalendarClock,
 } from "lucide-react";
 import { PWAManualInstall } from "../pwa-manual-install";
 
@@ -19,6 +20,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Transaksi", href: "/transactions", icon: ReceiptText },
   { name: "Transfer", href: "/transfers", icon: ArrowRightLeft },
+  { name: "Tagihan", href: "/bills", icon: CalendarClock },
   { name: "Dompet", href: "/accounts", icon: CreditCard },
   { name: "Investasi", href: "/investments", icon: TrendingUp },
   { name: "Kategori", href: "/categories", icon: Tags },

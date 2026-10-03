@@ -7,6 +7,7 @@ import { MonthlyBarChart } from "@/components/dashboard/monthly-bar-chart";
 import { DailyTrendChart } from "@/components/dashboard/daily-trend-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { BudgetProgress } from "@/components/dashboard/budget-progress";
+import { UpcomingBills } from "@/components/dashboard/upcoming-bills";
 import { useDashboard } from "@/queries/dashboard";
 import { format, addMonths } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -86,6 +87,9 @@ export default function DashboardPage() {
         monthlyExpense={data.monthlyExpense}
         currentMonth={data.currentMonth}
       />
+
+      {/* Overdue / due within 7 days (only shows if any) */}
+      <UpcomingBills />
 
       {/* Charts Row 1: Pie + Bar */}
       <div className="grid gap-4 md:grid-cols-2">

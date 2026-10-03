@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { parseAmount, formatRupiah } from "./utils";
 import { getTransferType, todayWIB } from "../utils";
 import { getBudgetAlert, getBudgetStatus } from "../budget-alert";
+import { buildBillMessage, formatDueDate, payBill } from "../bills";
 import {
   getCurrentMonthRange,
   classifyMessage,
@@ -183,6 +184,7 @@ export async function handleStart(ctx: Context) {
       `/cancel - Batalkan wizard aktif\n` +
       `/undo - Hapus input terakhir dari Telegram\n` +
       `/budget - Cek pemakaian budget bulan ini\n` +
+      `/tagihan - Daftar tagihan & jatuh tempo\n` +
       `/help - Bantuan`,
     { parse_mode: "Markdown" },
   );
@@ -219,6 +221,7 @@ export async function handleHelp(ctx: Context) {
       `/cancel - Batalkan wizard aktif\n` +
       `/undo - Hapus input terakhir dari Telegram\n` +
       `/budget - Cek pemakaian budget bulan ini\n` +
+      `/tagihan - Daftar tagihan & jatuh tempo\n` +
       `/link - Hubungkan akun Telegram`,
     { parse_mode: "Markdown" },
   );
@@ -875,6 +878,33 @@ export async function handleCallback(ctx: Context) {
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
 
+  // Bill marked paid from a reminder or /tagihan button: bp:<billId>:<dueDate>
+  // The due date makes an old button fail instead of paying the next period
+  if (cbData.startsWith("bp:")) {
+    const [, billId, dueDate] = cbData.split(":");
+    const profile = await getUserByTelegramId(telegramId);
+    if (!profile) {
+      await ctx.answerCbQuery("❌ Akun belum terhubung.");
+      return;
+    }
+
+    const result = await payBill(supabase, profile.user_id, { billId, dueDate, source: "telegram" });
+    if ("error" in result) {
+      await ctx.answerCbQuery(`❌ ${result.error}`);
+      return;
+    }
+
+    await ctx.answerCbQuery("✅ Tercatat!");
+    // Plain text: bill and account names are user input
+    await ctx.reply(
+      `✅ ${result.bill.name} ${formatRupiah(result.amount ?? 0)} tercatat dari ${result.accountName}\n` +
+        `📅 Jatuh tempo berikutnya: ${formatDueDate(result.nextDue)}\n\n` +
+        `Nominal berbeda? Ketik /undo lalu bayar dari web.`,
+    );
+    if (result.alert) await ctx.reply(result.alert);
+    return;
+  }
+
   // CASE 1: Pilihan Kategori (Wizard)
   if (cbData.startsWith("c:")) {
     const session = await getTelegramSession(telegramId);
@@ -1200,6 +1230,30 @@ export async function handleBudget(ctx: Context) {
     status ??
       "📭 Belum ada kategori dengan budget.\n\n" +
         "Atur di web: Kategori → edit kategori pengeluaran → Anggaran Bulanan.",
+  );
+}
+
+// /tagihan
+export async function handleBills(ctx: Context) {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const profile = await getUserByTelegramId(telegramId);
+  if (!profile) {
+    await ctx.reply("❌ Akun belum terhubung. Gunakan /link terlebih dahulu.");
+    return;
+  }
+
+  const message = await buildBillMessage(supabase, profile.user_id, { onlyReminders: false });
+  if (!message) {
+    await ctx.reply("📭 Belum ada tagihan.\n\nTambahkan di web: menu Tagihan.");
+    return;
+  }
+  await ctx.reply(
+    message.text,
+    Markup.inlineKeyboard(
+      message.buttons.map((row) => row.map((b) => Markup.button.callback(b.text, b.callback_data))),
+    ),
   );
 }
 
